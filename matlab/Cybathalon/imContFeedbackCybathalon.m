@@ -1,9 +1,9 @@
-configureIM;
+configureExp;
 if ( ~exist('contFeedbackTrialDuration') || isempty(contFeedbackTrialDuration) )
   contFeedbackTrialDuration=trialDuration;
 end;
 
-cybathalon = struct('host','localhost','port',5555,'player',1,...
+cybathalon = struct('host','192.168.0.4','port',5555,'player',1,...
                     'cmdlabels',{{'jump' 'slide' 'speed' 'rest'}},'cmddict',[2 3 1 99],...
 						  'cmdColors',[.6 0 .6;.6 .6 0;0 .5 0;.3 .3 .3]',...
                     'socket',[],'socketaddress',[]);
@@ -132,7 +132,14 @@ for si=1:max(100000,nSeq);
     fprintf(1,'Error! no predictions after %gs, continuing (%d samp, %d evt)\n',curTime-trlStartTime,state.nSamples,state.nEvents);
     set(h(end),'facecolor',fbColor); % fix turns blue to show now pred recieved
     drawnow;
-  
+    try
+  		cybathalon.socket.send(javaObject('java.net.DatagramPacket',uint8([12 0]),1));
+	 catch;
+		if ( connectionWarned<10 )
+		  connectionWarned=connectionWarned+1;
+		  warning('Error sending to the Cybathalon game.  Is it running?\n');
+		end
+	 end
   else
      % average of the predictions is used for the final decision
      dv = mean(preds,2);
