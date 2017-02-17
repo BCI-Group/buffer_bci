@@ -1,0 +1,10 @@
+---> Mejorar la pausa.
+
+---> Ver si el clasificador funciona
+
+---> Implementar la correcta predicción cuando usemos el ErrP en la etapa final.
+
+
+TODO
+
+In imSigProcBufferIM el estímulo 'stimulus_im.calibration en la fase calibrate_im está grabado a fuego.

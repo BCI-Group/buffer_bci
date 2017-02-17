@@ -131,7 +131,7 @@ while (ishandle(contFig))
             sendEvent('subject',subject);
             sendEvent(phaseToRun,'start');
             sendEvent('startPhase.cmd',phaseToRun); % Run the SigProc for the ErrP calibration
-            pause(0.2)  % If the events are produced at the same time
+            pause(0.5)  % If the events are produced at the same time
                         % SigProcBufferIM won't recognice the second one
             sendEvent('startPhase.cmd','classify_im'); % Run the SigProc for the IM classifier
             try

@@ -62,6 +62,15 @@ for si=1:nSeq;
     set(progressText,'string',sprintf('%2d/%2d',si,nSeq));
     drawnow;
     
+    % If enough iterations have been done
+    if (mod(si,15)==0)
+        set(txthdl,'string',{'Take as much time as you need to rest.' 'Then, press any key to continue.'}, 'visible', 'on', 'color',[1 1 1]);
+        drawnow;
+        waitforbuttonpress;
+        set(txthdl,'string',{''}, 'visible', 'on', 'color',[1 1 1]);
+        drawnow;
+    end
+    
   if ( ~ishandle(fig) ) break; end;
 
   sleepSec(intertrialDuration);

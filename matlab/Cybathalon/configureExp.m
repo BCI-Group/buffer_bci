@@ -48,14 +48,14 @@ nSymbs       =3; % E,N,W,S for 4 outputs, N,W,E  for 3 outputs
 symbCue      ={'Feet' 'Left-Hand' 'Right-Hand'};
 baselineClass='99 Rest'; % if set, treat baseline phase as a separate class to classify
 %symbCue      ={'rst' 'LH' 'RH'}; % string cue in addition to positional one. N,W,E for 3 symbs
-nSeq         =2*nSymbs; % 15 examples of each target
+nSeq         =15*nSymbs; % 15 examples of each target
 nSeq_Prac    =2*nSymbs; % Number of item to practice with in the Practice phase
 
 epochDuration     =1.5;
-trialDuration     =epochDuration*3; % = 4.5s trials
+trialDuration     =3 % epochDuration*3; % = 4.5s trials
 baselineDuration  =epochDuration;   % = 1.5s baseline
 intertrialDuration=epochDuration;   % = 1.5s post-trial
-feedbackDuration  =epochDuration;
+feedbackDuration  =0.1 %epochDuration;
 
 contFeedbackTrialDuration =10;
 neurofeedbackTrialDuration=30;
@@ -71,18 +71,19 @@ fbColor      =[0 0 1]; % feedback color
 txtColor     =[.5 .5 .5]; % color of the cue text
 
 % Calibration/data-recording options
-offset_ms     =[250 250]; % give .25s for user to start/finish
-trlen_ms      =epochDuration*1000; % how often to run the classifier of imaginary movement.
+offset_ms     = [250 250]; % give .25s for user to start/finish
+trlen_ms      = epochDuration*1000; % how often to run the classifier of imaginary movement.
 trlen_ms_ErrP      = 650; % how much time we collect data for the analysis of ErrP
 calibrateOpts ={'offset_ms',offset_ms};
 adaptHalfLife_ms = 10*1000; %10s
 
 % classifier training options
 freqband = [7 8 28 29];
-welch_width_ms=250; % width of welch window => spectral resolution
-step_ms       =welch_width_ms/2;% N.B. welch defaults=.5 window overlap, use step=width/2 to simulate
-trialadaptfactor=exp(log(.5)/(adaptHalfLife_ms/trlen_ms)); % adapt rate when apply per-trial
-contadaptfactor =exp(log(.5)/(adaptHalfLife_ms/welch_width_ms)); % adapt rate when apply per welch-win
+freqband_errp = [0.5 1 9.5 10];
+welch_width_ms = 250; % width of welch window => spectral resolution
+step_ms       = welch_width_ms/2;% N.B. welch defaults=.5 window overlap, use step=width/2 to simulate
+trialadaptfactor = exp(log(.5)/(adaptHalfLife_ms/trlen_ms)); % adapt rate when apply per-trial
+contadaptfactor = exp(log(.5)/(adaptHalfLife_ms/welch_width_ms)); % adapt rate when apply per welch-win
 
 %trainOpts={'width_ms',welch_width_ms,'badtrrm',0}; % default: 4hz res, stack of independent one-vs-rest classifiers
 %trainOpts={'width_ms',welch_width_ms,'badtrrm',0,'spatialfilter','wht','objFn','mlr_cg','binsp',0,'spMx','1vR'}; % whiten + direct multi-class training
