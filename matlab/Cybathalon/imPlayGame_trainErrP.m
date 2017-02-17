@@ -1,7 +1,14 @@
+udpr = dsp.UDPReceiver('LocalIPPort',6666,'MessageDataType','int8');
+% To prevent the loss of packets, call the |setup| method
+% on the object before the first call to the |step| method.
+% Here I just do the first step.
+step(udpr);
+
 configureExp;
 if ( ~exist('epochFeedbackTrialDuration') || isempty(epochFeedbackTrialDuration) )
   epochFeedbackTrialDuration=trialDuration;
 end;
+
 
 rtbDuration=.5; %.5s between commands
 
@@ -65,9 +72,8 @@ sendEvent('stimulus.testing','start');
 % initialize the state so don't miss classifier prediction events
 state=[]; 
 endTesting=false; dvs=[];
-failedLastTime = 0;
-lastErrPPrediction = [];
-lastMove = -1;
+prevStage=[];
+endCont = 0;
 for si=1:max(100000,nSeq);
 
   if ( ~ishandle(fig) || endTesting ) break; end;
@@ -101,7 +107,7 @@ for si=1:max(100000,nSeq);
   
   % do something with the prediction (if there is one), i.e. give feedback
   if( isempty(devents) ) % extract the decision value
-    fprintf(1,'Error! no IM predictions after %gs, continuing (%d samp, %d evt)\n',trlEndTime-trlStartTime,state.nSamples,state.nEvents);
+    fprintf(1,'Error! no predictions after %gs, continuing (%d samp, %d evt)\n',trlEndTime-trlStartTime,state.nSamples,state.nEvents);
     set(h(end),'facecolor',bgColor);
     set(h(end),'facecolor',fbColor); % fix turns blue to show now pred recieved
     drawnow;
@@ -127,58 +133,34 @@ for si=1:max(100000,nSeq);
     set(h(end),'facecolor',bgColor);
     set(h(predTgt),'facecolor',fbColor);
     drawnow;
-    
-    % We make sure we won't use the same prediction that failed last time
-    if failedLastTime==1
-        if lastMove == predTgt
-            dv(predTgt) = intmin;
-            [ans,predTgt]=max(dv);
-        end
-    end
-    
-    % TODO Not sure if we should call this event "stimulus.predTgt" since
-    % it is not always a predicted output but the second with highest
-    % probabilities
     sendEvent('stimulus.predTgt',predTgt);
     
+    % Get current stage of the game
+    actStage=step(udpr);
+    if isempty(actStage)
+        actStage = prevStage;
+        endCont = endCont + 1;
+    else
+        endCont = 0;
+    end
+    prevStage = actStage;
+    
+    if endCont>=5;
+        endTesting = true;
+    end
     
 	% send the command to the game server
 	 try;
 		cybathalon.socket.send(javaObject('java.net.DatagramPacket',uint8([10*cybathalon.player+cybathalon.cmddict(predTgt) 0]),1));
-	    sendEvent('stimulus_errp.predict','start');
+	         sendEvent('stimulus_errp.target',predTgt==actStage);
      catch;
 		if ( connectionWarned<10 )
 		  connectionWarned=connectionWarned+1;
 		  warning('Error sending to the Cybathalon game.  Is it running?\n');
 		end
-     end
-     
-     [devents,state,nevents,nsamples]=buffer_newevents(buffhost,buffport,state,'classifier_errp.prediction',[],1000);
-     if( isempty(devents) ) % extract the decision value
-         % TODO Check this error message
-         fprintf(1,'Error! no ErrP predictions after %gs, continuing (%d samp, %d evt)\n',trlEndTime-trlStartTime,state.nSamples,state.nEvents);
-     else
-         dv = devents(end).value;
-             if failedLastTime==0   % If we did not fail last time.
-                 if dv==0    % If we predict that we failed.
-                    failedLastTime=1;
-                    lastErrPPrediction = dv;
-                    lastMove = predTgt;
-                 else       % If we think we succeded with our prediction.
-%TODO UPDATE CLASSIFIER HERE
-                 end
-             else   %If we failed in our last prediction.
-                 if dv==0    % If we predict that we failed.
-%TODO UPDATE CLASSIFIER HERE
-                 else       % If we think we succeded with our prediction.
-                    failedLastTime=1;
-                    lastErrPPrediction = dv;
-                    lastMove = predTgt;
-                 end
-             end
-     end
+	 end
 
-	 % now wait a little to give some RTB time
+										  % now wait a little to give some RTB time
 	 drawnow;
 	 sleepSec(rtbDuration);
 	 set(h(predTgt),'facecolor',cybathalon.cmdColors(:,predTgt));

@@ -202,10 +202,8 @@ while ( true )
         load(fname); 
         trainSubj=subject;
       end;
-% TODO This is just to avoid training. Delete this and subtitude it by the
-% code above.
-% load ('training_data_test_161224');
-trainSubj=subject;
+
+      trainSubj=subject;
       if ( opts.verb>0 ) fprintf('%d epochs\n',numel(traindevents)); end;
 		
       [clsfr,res]=buffer_train_ersp_clsfr(traindata,traindevents,hdr,'spatialfilter','car',...
@@ -241,7 +239,7 @@ trainSubj=subject;
       if( isfield(clsfr,'clsfr') ) clsfr=clsfr.clsfr; end;
       clsSubj = subject;
     end;
-	 % generate prediction every trlen_ms/2 seconds using trlen_ms data
+    
     event_applyClsfr(clsfr,'startSet',opts.testepochEventType,...
 							'predFilt',opts.epochPredFilt,...
 							'endType',{'stimulus.testing','testing','test','epochfeedback','eventfeedback'},...
@@ -249,50 +247,6 @@ trainSubj=subject;
                             'verb',opts.verb,...
 							'trlen_ms',opts.trlen_ms,...%default to trlen_ms data per prediction
 							opts.epochFeedbackOpts{:}); % allow override with epochFeedbackOpts
-
-	 % generate prediction every trlen_ms/2 seconds using trlen_ms data
-
-
-% trlen_ms=600; % Amount of time we collect data after an event.
-% % 600ms for a P300.
-% state=[];   % State of the buffer
-% finish=0;   % Is the feedback stimulus over
-% endTrial = 0;   % Are all the secuences over
-% fs=[];  % Stored predictions
-% i = 0; % Letters processed so far.
-% 
-% while ( ~finish )
-%     fs=[];
-%     i = 0;
-%     endTrial = 0;
-%     
-%     while ( endTrial==0 && finish==0 )
-%         % Wait for data to apply the classifier to
-%         [data,devents,state]=buffer_waitData(buffhost,buffport,state,...
-%             'startSet',{'stimulus.showLetter' 'start'},'trlen_ms',trlen_ms,...
-%             'exitSet',{'data' {'stimulus.trial' 'stimulus.program'} 'end'}, ...
-%             'verb',ops.verb);
-%         
-%         % Process events
-%         for ei=1:numel(devents)
-%             if (matchEvents(devents(ei),'stimulus.program','end') ) % ends program
-%                 finish=ei; % record which is the end-feedback event
-%             elseif (matchEvents(devents(ei),'stimulus.trial','end')) % ends trial
-%                 endTrial =1;
-%             elseif ( matchEvents(devents(ei),'stimulus.showLetter', 'start') ) % applies the classifier
-%                 i = i + 1;
-%                 % apply classification to this events data
-%                 f=buffer_apply_erp_clsfr(data(ei).buf,clsfr);
-%                 fs(1:i)=f; % store the set of all predictions so far
-%             end
-%         end % devents
-%     end
-%     % After trial is over, we send the predictions
-%     if ( endTrial>0 )
-%         sendEvent('classifier.prediction',fs,devents(endTrial).sample);
-%     end
-% end % Experiment is over
-
 	 catch
       fprintf('Error in : %s',phaseToRun);
       le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',le.identifier,le.message);
@@ -303,7 +257,6 @@ trainSubj=subject;
 		end
       msgbox({sprintf('Error in : %s',phaseToRun) 'OK to continue!'},'Error');
     end
-    
       
    case {'quit','exit'};
     break;

@@ -136,7 +136,7 @@ while (ishandle(contFig))
             sendEvent('startPhase.cmd','classify_im'); % Run the SigProc for the IM classifier
             try
                 % run the main cybathalon control
-                imPlayGame;
+                imPlayGame_trainErrP;
             catch
                 le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',...
                     le.identifier,le.message);
@@ -159,12 +159,15 @@ while (ishandle(contFig))
             %--------------------------------------------------------------
         case {'play_cybathalon'};
             sendEvent('subject',subject);
-            sendEvent(phaseToRun,'start');
-            sendEvent('startPhase.cmd','classify_errp'); % Run the SigProc for the ErrP classifier
+            sendEvent(phaseToRun,'start');            
+            sendEvent('startPhase.cmd','classify_errp'); % Run the SigProc for the ErrP calibration
+            pause(0.5)  % If the events are produced at the same time
+                        % SigProcBufferIM won't recognice the second one
             sendEvent('startPhase.cmd','classify_im'); % Run the SigProc for the IM classifier
+
             try
                 % run the main cybathalon control
-                imContFeedbackCybathalon;
+                imPlayGame;
             catch
                 le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',...
                     le.identifier,le.message);

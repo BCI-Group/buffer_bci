@@ -192,10 +192,33 @@ while ( true )
 
             % TODO We might (probably) have to remove a ton more of other events.
             fname=[dname '_' subject '_' datestr];
-            fprintf('Saving %d epochs to : %s\n',numel(traindevents),fname);
-            save([fname '.mat'],'traindata','traindevents','hdr');
+            if exist([fname '_part1'], 'file')==0
+                fprintf('Saving %d epochs to : %s\n',numel(traindevents),[fname '_part1']);
+                save([[fname '_part1'] '.mat'],'traindata','traindevents','hdr');
+            elseif exist([fname '_part2'], 'file')==0
+                fprintf('Saving %d epochs to : %s\n',numel(traindevents),[fname '_part2']);
+                save([[fname '_part2'] '.mat'],'traindata','traindevents','hdr');
+            elseif exist([fname '_part3'], 'file')==0
+                fprintf('Saving %d epochs to : %s\n',numel(traindevents),[fname '_part3']);
+                save([[fname '_part3'] '.mat'],'traindata','traindevents','hdr');
+                load([fname '_part1']);
+                td1= traindata;
+                te1= traindevents;
+                load([fname '_part2']);
+                td2= traindata;
+                te2= traindevents;
+                load([fname '_part3']);
+                td3= traindata;
+                te3= traindevents;
+                traindata = [td1;td2;td3];
+                traindevents = [te1;te2;te3];
+                fprintf('Data merged');
+                save([fname '.mat'],'traindata','traindevents','hdr');
+            else
+                fprintf('Saving %d epochs to : %s\n',numel(traindevents),[fname '_extra']);
+                save([[fname '_extra'] '.mat'],'traindata','traindevents','hdr');
+            end
             trainSubj=subject;
-            
         %---------------------------------------------------------------------------------
         case {'train_errp'};
             %try
@@ -211,14 +234,29 @@ while ( true )
             end;
             if ( opts.verb>0 ) fprintf('%d epochs\n',numel(traindevents)); end;
             
+%             [clsfr,res]=buffer_train_erp_clsfr(traindata,traindevents,...
+%                 hdr,'spatialfilter','car', 'freqband',opts.freqband,...
+%                 'badchrm',1,'badtrrm',1,'capFile',capFile,...
+%                 'overridechnms',overridechnms,'verb',opts.verb, opts.trainOpts{:});
+            
+            for i=1:size(traindata,1)
+                %tmp1 = traindata(i).buf(1,:);
+                %tmp2 = traindata(i).buf(1,:);
+                %tmp3 = traindata(i).buf(1,:);
+                traindata(i).buf(1,:) = traindata(i).buf(5,:);
+                traindata(i).buf(2,:) = traindata(i).buf(9,:);
+                traindata(i).buf(3,:) = traindata(i).buf(11,:);
+            %    traindata(i).buf(4:32,:) = [];
+            end
+
             [clsfr,res]=buffer_train_erp_clsfr(traindata,traindevents,...
-                hdr,'spatialfilter','car', 'freqband',opts.freqband,...
+                hdr,'spatialfilter','car', 'freqband',[0 0.3 7.7 8],...
                 'badchrm',1,'badtrrm',1,'capFile',capFile,...
-                'overridechnms',overridechnms,'verb',opts.verb, opts.trainOpts{:});
+                'overridechnms',1,'verb',1,'fs',250);
             
             clsSubj=subject;
             fname=[cname '_' subject '_' datestr];
-            fprintf('Saving classifier to : %s\n',fname);save([fname '.mat'],'-struct','clsfr');
+            fprintf('Saving classifier to : %s\n',fname);save([fname '.mat'],'clsfr');
             %catch
             % fprintf('Error in : %s',phaseToRun);
             % le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',le.identifier,le.message);
@@ -231,8 +269,8 @@ while ( true )
             % sendEvent('training','end');
             %end
         %---------------------------------------------------------------------------------
-        case {'test_errp'};
-            try
+        case {'classify_errp'};
+            %try
                 if ( ~isequal(clsSubj,subject) || ~exist('clsfr','var') )
                     clsfrfile = [cname '_' subject '_' datestr];
                     if ( ~(exist([clsfrfile '.mat'],'file') || exist(clsfrfile,'file')) )
@@ -244,22 +282,25 @@ while ( true )
                     clsSubj = subject;
                 end;
                 
-                event_applyClsfr(clsfr,'startSet',opts.testepochEventType,...
-                    'predFilt',opts.epochPredFilt,...
-                    'endType',{'testing','test','epochfeedback','eventfeedback'},'verb',opts.verb,...
-                    'trlen_ms',opts.trlen_ms,...%default to trlen_ms data per prediction
-                    opts.epochFeedbackOpts{:}); % allow override with epochFeedbackOpts
-            catch
-                fprintf('Error in : %s',phaseToRun);
-                le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',le.identifier,le.message);
-                if ( ~isempty(le.stack) )
-                    for i=1:numel(le.stack);
-                        fprintf('%s>%s : %d\n',le.stack(i).file,le.stack(i).name,le.stack(i).line);
-                    end;
-                end
-                msgbox({sprintf('Error in : %s',phaseToRun) 'OK to continue!'},'Error');
-                sendEvent('testing','end');
-            end
+                event_applyClsfr(clsfr,'startSet',{'stimulus_errp.predict'},...
+                    'predFilt','car',...
+                    'predEventType','classifier_errp.prediction',... 
+                    'endType',{'testing','test','epochfeedback','eventfeedback'},...
+                    'verb',opts.verb,...
+                    'trlen_ms',650); %opts.epochFeedbackOpts{:}
+                
+                
+%             catch
+%                 fprintf('Error in : %s',phaseToRun);
+%                 le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',le.identifier,le.message);
+%                 if ( ~isempty(le.stack) )
+%                     for i=1:numel(le.stack);
+%                         fprintf('%s>%s : %d\n',le.stack(i).file,le.stack(i).name,le.stack(i).line);
+%                     end;
+%                 end
+%                 msgbox({sprintf('Error in : %s',phaseToRun) 'OK to continue!'},'Error');
+%                 sendEvent('testing','end');
+%             end
             
         case {'quit','exit'};
             break;
