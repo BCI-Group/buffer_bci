@@ -98,7 +98,7 @@ for si=1:nSeq;
   else
 	 tgtNm = tgtIdx; % human-name is position number
   end
-  set(h(end),'facecolor',[0 1 0]); % green fixation indicates trial running
+  set(h(end),'facecolor',fixColor); % green fixation indicates trial running
   fprintf('%d) tgt=%10s : ',si,tgtNm);
   sendEvent('stimulus_im.trial','start');
   for ei=1:ceil(trialDuration./epochDuration);
@@ -121,7 +121,7 @@ end % sequences
 sendEvent('stimulus_im.calibration','end');
 
 if ( ishandle(fig) ) % thanks message
-set(txthdl,'string',{'That ends the training phase.','Thanks for your patience'}, 'visible', 'on', 'color',[0 1 0]);
+set(txthdl,'string',{'That ends the training phase.','Thanks for your patience'}, 'visible', 'on', 'color', txtColor);
 pause(3);
 close(fig);
 end

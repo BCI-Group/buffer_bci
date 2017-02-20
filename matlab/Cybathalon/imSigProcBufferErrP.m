@@ -81,8 +81,7 @@ opts=struct('phaseEventType','startPhase.cmd',...
     'clsfr_type','erp','trlen_ms',650,'freqband',[0.5 1 9.5 10],...
     'calibrateOpts',{{}},'trainOpts',{{}},...
     'epochPredFilt',[],'epochFeedbackOpts',{{}},...
-    'contPredFilt',[],'contFeedbackOpts',{{}},...
-    'capFile',[],...
+    'contPredFilt',[],'capFile',[],...
     'subject','test','verb',1,'buffhost',[],'buffport',[],'timeout_ms',500,...
     'cancelError',0);
 opts=parseOpts(opts,varargin);
@@ -167,7 +166,7 @@ while ( true )
         
             %---------------------------------------------------------------------------------
         case {'eegviewer_errp'};
-        eegViewer(opts.buffhost,opts.buffport,'capFile',capFile,'overridechnms',overridechnms);
+            eegViewer(opts.buffhost,opts.buffport,'capFile',capFile,'overridechnms',overridechnms);
         %---------------------------------------------------------------------------------
         
         case {'calibrate_errp'};
@@ -313,5 +312,7 @@ while ( true )
             
     end
     if ( opts.verb>0 ) fprintf('Finished : %s @ %5.3fs\n',phaseToRun,getwTime()-ptime); end;
+    sendEvent(phaseToRun,'end');
+
     
 end
