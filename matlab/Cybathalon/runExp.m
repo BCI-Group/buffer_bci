@@ -9,14 +9,16 @@ axes('position',[0 0 1 1],'visible','off','xlim',[0 1],'ylim',[0 1],'nextplot','
 set(contFig,'Units','pixel');wSize=get(contFig,'position');
 fontSize = .05*wSize(4);
 %        Instruct String          Phase-name
-menustr={'0) EEG'                 'eegviewer';
+menustr={'0) EEG IM'            'eegviewer_im';
     '1) Practice IM'            'practice_im';
     '2) Calibrate IM'           'calibrate_im';
     '3) Train IM Classifier'    'train_im';
-    '4) Calibrate ErrP'    'calibrate_errp';
-    '5) Train ErrP Classifier'    'train_errp';
+    '---------' '';
+    '4) EGG ErrP'               'eegviewer_errp';
+    '5) Calibrate ErrP'    'calibrate_errp';
+    '6) Train ErrP Classifier'    'train_errp';
     '' '';
-    'b) Cybathalon Control'   'play_cybathalon';
+    'a) Cybathalon Control'   'play_cybathalon';
     '' '';
     'K) Keyboard Control'    'keyboardcontrol';
     'q) quit'                'exit';
@@ -72,7 +74,7 @@ while (ishandle(contFig))
     switch phaseToRun;
         
             %--------------------------------------------------------------
-        case 'eegviewer';
+        case 'eegviewer_im';
             sendEvent('subject',subject);
             sendEvent(phaseToRun,'start');
             sendEvent('startPhase.cmd',phaseToRun); % tell sig-proc what to do
@@ -125,6 +127,20 @@ while (ishandle(contFig))
                     le.identifier,le.message);
                 sendEvent(phaseToRun,'end');
             end
+            
+            %--------------------------------------------------------------
+        case 'eegviewer_errp';
+            sendEvent('subject',subject);
+            sendEvent(phaseToRun,'start');
+            sendEvent('startPhase.cmd',phaseToRun); % tell sig-proc what to do
+            % wait until capFitting is done
+            while (true) % N.B. use a loop as safer and matlab still responds on windows...
+                [devents]=buffer_newevents(buffhost,buffport,[],...
+                    phaseToRun,'end',1000); % wait until finished
+                drawnow;
+                if ( ~isempty(devents) ) break; end;
+            end    
+            
             
             %--------------------------------------------------------------
         case {'calibrate_errp'};

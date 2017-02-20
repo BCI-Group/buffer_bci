@@ -68,7 +68,7 @@ bgColor      =[.5 .5 .5]; % background/inactive stimuli color
 fixColor     =[1 0 0]; % fixitation/get-ready cue point color
 tgtColor     =[0 1 0]; % target color
 fbColor      =[0 0 1]; % feedback color
-txtColor     =[.5 .5 .5]; % color of the cue text
+txtColor     =[1 1 1]; % color of the cue text
 
 % Calibration/data-recording options
 offset_ms     = [250 250]; % give .25s for user to start/finish

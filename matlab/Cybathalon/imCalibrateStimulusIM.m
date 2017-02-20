@@ -53,7 +53,7 @@ progressText=text(axLim(1),axLim(2),sprintf('%2d/%2d',0,nSeq),...
 set(h(:),'facecolor',bgColor);
 sendEvent('stimulus_im.calibration','start');
 
-set(txthdl,'string', 'Click mouse when ready', 'visible', 'on'); drawnow;
+set(txthdl,'string', {'Imagine moving the bodypart written in screen.' 'Click mouse when ready'}, 'visible', 'on', 'color', txtColor); drawnow;
 waitforbuttonpress;
 set(txthdl,'visible', 'off'); drawnow;
 

@@ -178,7 +178,7 @@ while ( true )
   switch lower(phaseToRun);
     
     %---------------------------------------------------------------------------------
-   case {'eegviewer'};
+   case {'eegviewer_im'};
         eegViewer(opts.buffhost,opts.buffport,'capFile',capFile,'overridechnms',overridechnms);
    %---------------------------------------------------------------------------------
    case {'calibrate_im'};

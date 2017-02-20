@@ -165,6 +165,9 @@ while ( true )
     
     switch lower(phaseToRun);
         
+            %---------------------------------------------------------------------------------
+        case {'eegviewer_errp'};
+        eegViewer(opts.buffhost,opts.buffport,'capFile',capFile,'overridechnms',overridechnms);
         %---------------------------------------------------------------------------------
         
         case {'calibrate_errp'};
