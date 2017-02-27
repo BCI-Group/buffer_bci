@@ -58,12 +58,6 @@ function []=imSigProcBufferErrP(varargin)
 %   buffport       -- int, port number on which ft-buffer is running                   (1972)
 %   epochPredFilt  -- [float/str/function_handle] prediction filter for smoothing the
 %                      epoch output classifier.
-%   contPredFilt   -- [float/str/function_handle] prediction filter for smoothing the continuous
-%                      output classifier.  Defined as for the cont_applyClsfr argument ([])
-%                     predFilt=[] - no filtering
-%                     predFilt>=0 - coefficient for exp-decay moving average. f=predFilt*f + (1-predFilt)f_new
-%                                N.B. predFilt = exp(log(.5)/halflife)
-%                     predFilt<0  - #components to average                    f=mean(f(:,end-predFilt:end),2)
 %
 
 % setup the paths if needed
@@ -80,10 +74,9 @@ opts=struct('phaseEventType','startPhase.cmd',...
     'erpEventType',[],'erpMaxEvents',[],'erpOpts',{{}},...
     'clsfr_type','erp','trlen_ms',650,'freqband',[0.5 1 9.5 10],...
     'calibrateOpts',{{}},'trainOpts',{{}},...
-    'epochPredFilt',[],'epochFeedbackOpts',{{}},...
+    'epochPredFilt',[],...
     'contPredFilt',[],'capFile',[],...
-    'subject','test','verb',1,'buffhost',[],'buffport',[],'timeout_ms',500,...
-    'cancelError',0);
+    'subject','test','verb',1,'buffhost',[],'buffport',[],'timeout_ms',500);
 opts=parseOpts(opts,varargin);
 if ( ~iscell(opts.erpOpts) ) opts.erpOpts={opts.erpOpts}; end;
 if ( ~iscell(opts.trainOpts))opts.trainOpts={opts.trainOpts}; end;
@@ -97,16 +90,11 @@ if( isempty(capFile) )
     end; % 1010 default if not selected
 end
 if ( ~isempty(strfind(capFile,'1010.txt')) ) overridechnms=0; else overridechnms=1; end; % force default override
-if ( ~isempty(strfind(capFile,'tmsi')) ) thresh=[.0 .1 .2 5]; badchThresh=1e-4; end;
-
 
 if ( isempty(opts.epochEventType) )     opts.epochEventType='stimulus_errp.target'; end;
 if ( isempty(opts.testepochEventType) ) opts.testepochEventType='stimulus.classification_errp'; end;
 
-datestr = datevec(now); datestr = sprintf('%02d%02d%02d',datestr(1)-2000,datestr(2:3));
-dname='training_data_ErrP';
-cname='clsfr_ErrP';
-testname='testing_data_ErrP';
+datestr = datevec(now); datestr = sprintf('%02d%02d%02d',datestr(1)-2000,datestr(2:3)); % Date YYMMDD
 subject=opts.subject;
 
 % wait for the buffer to return valid header information
@@ -121,6 +109,8 @@ while ( isempty(hdr) || ~isstruct(hdr) || (hdr.nchans==0) ) % wait for the buffe
     pause(1);
 end;
 
+dname_errp = 'training_data_ErrP';
+cname_errp = 'clsfr_ErrP';
 
 % main loop waiting for commands and then executing them
 nevents=hdr.nEvents; nsamples=hdr.nsamples;
@@ -257,7 +247,7 @@ while ( true )
                 'overridechnms',1,'verb',1,'fs',250);
             
             clsSubj=subject;
-            fname=[cname '_' subject '_' datestr];
+            fname=[cname_errp '_' subject '_' datestr];
             fprintf('Saving classifier to : %s\n',fname);save([fname '.mat'],'clsfr');
             %catch
             % fprintf('Error in : %s',phaseToRun);
@@ -274,9 +264,9 @@ while ( true )
         case {'classify_errp'};
             %try
                 if ( ~isequal(clsSubj,subject) || ~exist('clsfr','var') )
-                    clsfrfile = [cname '_' subject '_' datestr];
+                    clsfrfile = [cname_errp '_' subject '_' datestr];
                     if ( ~(exist([clsfrfile '.mat'],'file') || exist(clsfrfile,'file')) )
-                        clsfrfile=[cname '_' subject];
+                        clsfrfile=[cname_errp '_' subject];
                     end;
                     if(opts.verb>0)fprintf('Loading classifier from file : %s\n',clsfrfile);end;
                     clsfr=load(clsfrfile);

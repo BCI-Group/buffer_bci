@@ -1,6 +1,6 @@
 function []=imSigProcBufferIM(varargin)
 % buffer controlled execution of the different signal processing phases
-% escept for the ones related to ErrP signals.
+% except for the ones related to ErrP signals.
 %
 % Trigger events: (type,value)
 %  (startPhase.cmd,eegviewer)  -- show the live signal viewer
@@ -62,13 +62,6 @@ function []=imSigProcBufferIM(varargin)
 %   buffport       -- int, port number on which ft-buffer is running                   (1972)
 %   epochPredFilt  -- [float/str/function_handle] prediction filter for smoothing the 
 %                      epoch output classifier.
-%   contPredFilt   -- [float/str/function_handle] prediction filter for smoothing the continuous
-%                      output classifier.  Defined as for the cont_applyClsfr argument ([])
-%                     predFilt=[] - no filtering 
-%                     predFilt>=0 - coefficient for exp-decay moving average. f=predFilt*f + (1-predFilt)f_new
-%                                N.B. predFilt = exp(log(.5)/halflife)
-%                     predFilt<0  - #components to average                    f=mean(f(:,end-predFilt:end),2)
-% 
 % Examples:
 %   startSigProcBuffer(); % run with standard parameters using the GUI to get more info.
 %
@@ -89,18 +82,14 @@ if ( isempty(wb) || isempty(strfind('dataAcq',wb)) )
 end;
 opts=struct('phaseEventType','startPhase.cmd',...
 				'epochEventType',[],'testepochEventType',[],...
-            'erpEventType',[],'erpMaxEvents',[],'erpOpts',{{}},...
-				'clsfr_type','erp','trlen_ms',1000,'freqband_im',[.1 .5 10 12],...
+				'clsfr_type','ersp','trlen_ms',1000,'freqband_im',[7 8 28 29],...
 				'calibrateOpts',{{}},'trainOpts',{{}},...
-            'epochPredFilt',[],'epochFeedbackOpts',{{}},...
-				'contPredFilt',[],'capFile',[],...
-				'subject','test','verb',1,'buffhost',[],'buffport',[],'timeout_ms',500,...
-				'useGUI',0,'cancelError',0);
+                'epochPredFilt',[],'capFile',[],...
+				'subject','test','verb',1,'buffhost',[],'buffport',[],...
+                'timeout_ms',500);
 opts=parseOpts(opts,varargin);
-if ( ~iscell(opts.erpOpts) ) opts.erpOpts={opts.erpOpts}; end;
 if ( ~iscell(opts.trainOpts))opts.trainOpts={opts.trainOpts}; end;
 
-thresh=[.5 3];  badchThresh=.5;   overridechnms=0;
 capFile=opts.capFile;
 if( isempty(capFile) ) 
   [fn,pth]=uigetfile(fullfile(mdir,'..','../resources/caps/*.txt'),'Pick cap-file'); 
@@ -109,15 +98,11 @@ if( isempty(capFile) )
   end; % 1010 default if not selected
 end
 if ( ~isempty(strfind(capFile,'1010.txt')) ) overridechnms=0; else overridechnms=1; end; % force default override
-if ( ~isempty(strfind(capFile,'tmsi')) ) thresh=[.0 .1 .2 5]; badchThresh=1e-4; end;
 
 if ( isempty(opts.epochEventType) )     opts.epochEventType='stimulus_im.target'; end;
 if ( isempty(opts.testepochEventType) ) opts.testepochEventType='stimulus.classification_im'; end;
 
-datestr = datevec(now); datestr = sprintf('%02d%02d%02d',datestr(1)-2000,datestr(2:3));
-dname='training_data';
-cname='clsfr';
-testname='testing_data';
+datestr = datevec(now); datestr = sprintf('%02d%02d%02d',datestr(1)-2000,datestr(2:3)); % Date YYMMDD
 subject=opts.subject;
 
 % wait for the buffer to return valid header information
@@ -132,6 +117,8 @@ while ( isempty(hdr) || ~isstruct(hdr) || (hdr.nchans==0) ) % wait for the buffe
   pause(1);
 end;
 
+dname_im = 'training_data';
+cname_im = 'clsfr';
 
 % main loop waiting for commands and then executing them
 nevents=hdr.nEvents; nsamples=hdr.nsamples;
@@ -181,7 +168,7 @@ while ( true )
    case {'calibrate_im'};
     [traindata,traindevents,state]=buffer_waitData(opts.buffhost,opts.buffport,[],'startSet',opts.epochEventType,'exitSet',{'stimulus_im.calibration' 'end'},'verb',opts.verb,'trlen_ms',opts.trlen_ms,opts.calibrateOpts{:});
     mi=matchEvents(traindevents,{'stimulus_im.calibration'},'end'); traindevents(mi)=[]; traindata(mi)=[];%remove exit event
-    fname=[dname '_' subject '_' datestr];
+    fname=[dname_im '_' subject '_' datestr];
     fprintf('Saving %d epochs to : %s\n',numel(traindevents),fname);
     save([fname '.mat'],'traindata','traindevents','hdr');
     trainSubj=subject;
@@ -190,7 +177,7 @@ while ( true )
     case {'train_im'};
 %     try
       if ( ~isequal(trainSubj,subject) || ~exist('traindata','var') )
-        fname=[dname '_' subject '_' datestr];
+        fname=[dname_im '_' subject '_' datestr];
         fprintf('Loading training data from : %s\n',fname);
         if ( ~(exist([fname '.mat'],'file') || exist(fname,'file')) ) 
           warning(['Couldnt find a classifier to load file: ' fname]);
@@ -203,13 +190,13 @@ while ( true )
       trainSubj=subject;
       if ( opts.verb>0 ) fprintf('%d epochs\n',numel(traindevents)); end;
 		
-      [clsfr,res]=buffer_train_ersp_clsfr(traindata,traindevents,hdr,'spatialfilter','car',...
-						   'freqband',opts.freqband_im,'badchrm',1,'badtrrm',1,...
+      [clsfr,res]=buffer_train_ersp_clsfr(traindata,traindevents,hdr,...
+						   'freqband',opts.freqband_im,...
 							'capFile',capFile,'overridechnms',overridechnms,'verb',opts.verb,...
 							opts.trainOpts{:});
        
       clsSubj=subject;
-      fname=[cname '_' subject '_' datestr];
+      fname=[cname_im '_' subject '_' datestr];
       fprintf('Saving classifier to : %s\n',fname);save([fname '.mat'],'clsfr');
 	%catch
       % fprintf('Error in : %s',phaseToRun);
@@ -227,9 +214,9 @@ while ( true )
    case {'classify_im'};
     try
     if ( ~isequal(clsSubj,subject) || ~exist('clsfr','var') ) 
-      clsfrfile = [cname '_' subject '_' datestr];
+      clsfrfile = [cname_im '_' subject '_' datestr];
       if ( ~(exist([clsfrfile '.mat'],'file') || exist(clsfrfile,'file')) ) 
-		  clsfrfile=[cname '_' subject]; 
+		  clsfrfile=[cname_im '_' subject]; 
 	  end;
       if(opts.verb>0)fprintf('Loading classifier from file : %s\n',clsfrfile);end;
       clsfr=load(clsfrfile);

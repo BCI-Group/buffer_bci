@@ -4,7 +4,7 @@ configureExp;
 %  contFig=controller(); info=guidata(contFig);
 %catch
 contFig=figure(1);
-set(contFig,'name','BCI Controller : close to quit','color',[0 0 0]);
+set(contFig,'name','BCI Controller: Selection screen','color',winColor);
 axes('position',[0 0 1 1],'visible','off','xlim',[0 1],'ylim',[0 1],'nextplot','add');
 set(contFig,'Units','pixel');wSize=get(contFig,'position');
 fontSize = .05*wSize(4);
@@ -73,7 +73,7 @@ while (ishandle(contFig))
     set(contFig,'visible','off');drawnow;
     switch phaseToRun;
         
-            %--------------------------------------------------------------
+        %------------------------------------------------------------------
         case 'eegviewer_im';
             sendEvent('subject',subject);
             sendEvent(phaseToRun,'start');
@@ -86,7 +86,7 @@ while (ishandle(contFig))
                 if ( ~isempty(devents) ) break; end;
             end
             
-            %---------------------------------------------------------------------------
+            %--------------------------------------------------------------
         case 'practice_im';
             sendEvent('subject',subject);
             sendEvent(phaseToRun,'start');
@@ -101,7 +101,7 @@ while (ishandle(contFig))
             end
             nSeq=onSeq; %Back to normal again
             sendEvent(phaseToRun,'end');
-
+            
             %--------------------------------------------------------------
         case {'calibrate_im'};
             sendEvent('subject',subject);
@@ -139,16 +139,15 @@ while (ishandle(contFig))
                     phaseToRun,'end',1000); % wait until finished
                 drawnow;
                 if ( ~isempty(devents) ) break; end;
-            end    
-            
-            
+            end
+
             %--------------------------------------------------------------
         case {'calibrate_errp'};
             sendEvent('subject',subject);
             sendEvent(phaseToRun,'start');
             sendEvent('startPhase.cmd',phaseToRun); % Run the SigProc for the ErrP calibration
             pause(0.5)  % If the events are produced at the same time
-                        % SigProcBufferIM won't recognice the second one
+            % SigProcBufferIM won't recognice the second one
             sendEvent('startPhase.cmd','classify_im'); % Run the SigProc for the IM classifier
             try
                 % run the main cybathalon control
@@ -175,12 +174,12 @@ while (ishandle(contFig))
             %--------------------------------------------------------------
         case {'play_cybathalon'};
             sendEvent('subject',subject);
-            sendEvent(phaseToRun,'start');            
+            sendEvent(phaseToRun,'start');
             sendEvent('startPhase.cmd','classify_errp'); % Run the SigProc for the ErrP calibration
             pause(0.5)  % If the events are produced at the same time
-                        % SigProcBufferIM won't recognice the second one
+            % SigProcBufferIM won't recognice the second one
             sendEvent('startPhase.cmd','classify_im'); % Run the SigProc for the IM classifier
-
+            
             try
                 % run the main cybathalon control
                 imPlayGame;
@@ -189,7 +188,7 @@ while (ishandle(contFig))
                     le.identifier,le.message);
                 sendEvent(phaseToRun,'end');
             end
-
+            
             %--------------------------------------------------------------
         case {'keyboardcontrol'};
             sendEvent('subject',subject);

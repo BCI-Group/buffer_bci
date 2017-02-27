@@ -1,4 +1,4 @@
-udpr = dsp.UDPReceiver('LocalIPPort',6666,'MessageDataType','int8');
+udpr = dsp.UDPReceiver('LocalIPPort',gamePort,'MessageDataType','int8');
 % To prevent the loss of packets, call the |setup| method
 % on the object before the first call to the |step| method.
 % Here I just do the first step.
@@ -170,6 +170,8 @@ for si=1:max(100000,nSeq);
   drawnow;
   
 end % loop over sequences in the experiment
+% release listening port
+release(udpr)
 % end training marker
 sendEvent('stimulus.testing','end');
 

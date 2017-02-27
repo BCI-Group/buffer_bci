@@ -45,18 +45,21 @@ verb         =1; % verbosity level for debug messages, 1=default, 0=quiet, 2=ver
 buffhost     ='localhost';
 buffport     =1972; % Port to connect to the EEG buffer
 gamePort     =6666; % Port to connect to the game (just valid during training).
+
+% Imaginary movement training parameters
 nSymbs       =3; % E,N,W,S for 4 outputs, N,W,E  for 3 outputs
 symbCue      ={'Feet' 'Left-Hand' 'Right-Hand'};
 baselineClass='99 Rest'; % if set, treat baseline phase as a separate class to classify
 nSeq         =15*nSymbs; % 15 examples of each target
 nSeq_Prac    =2*nSymbs; % Number of item to practice with in the Practice phase
 
+%%%%%%%%%%%%%%%%
 epochDuration     =1.5;
 trialDuration     = 3; % epochDuration*3; % = 4.5s trials
-baselineDuration  =epochDuration;   % = 1.5s baseline
-intertrialDuration=epochDuration;   % = 1.5s post-trial
-feedbackDuration  = 0.1; %epochDuration;
+baselineDuration  =epochDuration;   % Time indicating that trial is about to start
+intertrialDuration=epochDuration;   % Time between trials
 
+% Graphical interface options
 axLim        =[-1.5 1.5]; % size of the display axes
 winColor     =[0 0 0]; % window background color
 bgColor      =[.5 .5 .5]; % background/inactive stimuli color
@@ -65,21 +68,41 @@ tgtColor     =[0 1 0]; % target color
 fbColor      =[0 0 1]; % feedback color
 txtColor     =[1 1 1]; % color of the cue text
 
-% Calibration/data-recording options
-offset_ms     = [250 250]; % give .25s for user to start/finish
-trlen_ms      = epochDuration*1000; % how often to run the classifier of imaginary movement.
-trlen_ms_ErrP      = 650; % how much time we collect data for the analysis of ErrP
-calibrateOpts ={'offset_ms',offset_ms};
-adaptHalfLife_ms = 10*1000; %10s
+% Other interface parameters
 
-% classifier training options
+timeout_ms = 500; % Miliseconds the buffer is waiting for a new event of a pipeline phase.º 
+
+% Name of data files and classifiers
+% TODO This names are still included in the imSigProcBufferErrP and
+% imSigProcBufferIM
+dname_im = 'training_data';
+cname_im = 'clsfr';
+dname_errp = 'training_data_ErrP';
+cname_errp = 'clsfr_ErrP';
+
+% IM Calibration/data-recording options
+offset_ms_im     = [250 250]; % give .25s for user to start/finish
+trlen_ms_im      = epochDuration*1000; % how often to run the classifier of imaginary movement.
+calibrateOpts_im ={'offset_ms',offset_ms_im};
+
+% % ErrP Calibration/data-recording options
+trlen_ms_ErrP      = 650; % how much time we collect data for the analysis of ErrP
+
+
+% IM classifier training options
 freqband_im = [7 8 28 29];
-freqband_errp = [0.5 1 9.5 10];
 welch_width_ms = 250; % width of welch window => spectral resolution
 step_ms       = welch_width_ms/2;% N.B. welch defaults=.5 window overlap, use step=width/2 to simulate
-trialadaptfactor = exp(log(.5)/(adaptHalfLife_ms/trlen_ms)); % adapt rate when apply per-trial
+adaptHalfLife_ms = 10*1000; %10s
+trialadaptfactor = exp(log(.5)/(adaptHalfLife_ms/trlen_ms_im)); % adapt rate when apply per-trial
 contadaptfactor = exp(log(.5)/(adaptHalfLife_ms/welch_width_ms)); % adapt rate when apply per welch-win
 
 %trainOpts={'width_ms',welch_width_ms,'badtrrm',0}; % default: 4hz res, stack of independent one-vs-rest classifiers
 %trainOpts={'width_ms',welch_width_ms,'badtrrm',0,'spatialfilter','wht','objFn','mlr_cg','binsp',0,'spMx','1vR'}; % whiten + direct multi-class training
-trainOpts={'width_ms',welch_width_ms,'badtrrm',0,'spatialfilter','trwht','adaptivespatialfilt',trialadaptfactor,'objFn','mlr_cg','binsp',0,'spMx','1vR'}; % adaptive-whiten + direct multi-class training
+%trainOpts={'width_ms',welch_width_ms,'badtrrm',0,'spatialfilter','trwht','adaptivespatialfilt',trialadaptfactor,'objFn','mlr_cg','binsp',0,'spMx','1vR'}; % adaptive-whiten + direct multi-class training
+trainOpts_im={'badchrm',1,'width_ms',welch_width_ms,'badtrrm',1,'spatialfilter','trwht','adaptivespatialfilt',trialadaptfactor,'objFn','mlr_cg','binsp',0,'spMx','1vR'}; % adaptive-whiten + direct multi-class training
+
+% ErrP classifier options
+
+freqband_errp = [0.5 1 9.5 10];
+
