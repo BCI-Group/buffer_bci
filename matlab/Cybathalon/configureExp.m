@@ -87,6 +87,7 @@ calibrateOpts_im ={'offset_ms',offset_ms_im};
 
 % % ErrP Calibration/data-recording options
 trlen_ms_ErrP      = 650; % how much time we collect data for the analysis of ErrP
+calibrateOpts_errp ={};
 
 
 % IM classifier training options
@@ -105,4 +106,4 @@ trainOpts_im={'badchrm',1,'width_ms',welch_width_ms,'badtrrm',1,'spatialfilter',
 % ErrP classifier options
 
 freqband_errp = [0.5 1 9.5 10];
-
+trainOpts_errp = {};

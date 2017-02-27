@@ -154,22 +154,18 @@ while ( true )
     
     switch lower(phaseToRun);
         
-            %---------------------------------------------------------------------------------
+        %---------------------------------------------------------------------------------
         case {'eegviewer_errp'};
             eegViewer(opts.buffhost,opts.buffport,'capFile',capFile,'overridechnms',overridechnms);
         %---------------------------------------------------------------------------------
         
         case {'calibrate_errp'};
             state = [];
-% %            [traindata,traindevents,state]=buffer_waitData(opts.buffhost,...
-%                 opts.buffport,[],'startSet',opts.epochEventType,'exitSet',...   % The event to catch is stimulus_errp.target in imPlayGame
-%                 {'stimulus.testing' 'end'},'verb',opts.verb,...
-%                 'trlen_ms',opts.trlen_ms,opts.calibrateOpts{:});
-             [traindata,traindevents,state]=buffer_waitData(opts.buffhost,...
-                opts.buffport,state,'startSet','stimulus_errp.target','exitSet',...   % The event to catch is stimulus_errp.target in imPlayGame
-                {'stimulus.testing' 'end'},'verb',1,...
-                'trlen_ms',650);
-            
+            [traindata,traindevents,state]=buffer_waitData(opts.buffhost,...
+                 opts.buffport,[],'startSet',opts.epochEventType,'exitSet',...   % The event to catch is stimulus_errp.target in imPlayGame
+                 {'stimulus.testing' 'end'},'verb',opts.verb,...
+                 'trlen_ms',opts.trlen_ms,opts.calibrateOpts{:});
+
             %remove exit event
             mi=matchEvents(traindevents,{'stimulus.testing'},'end');
             traindevents(mi)=[];
@@ -241,8 +237,8 @@ while ( true )
             %    traindata(i).buf(4:32,:) = [];
             end
 
-            [clsfr,res]=buffer_train_erp_clsfr(traindata,traindevents,...
-                hdr,'spatialfilter','car', 'freqband',[0 0.3 7.7 8],...
+            [clsfr]=buffer_train_erp_clsfr(traindata,traindevents,...
+                hdr,'spatialfilter','car', 'freqband',opts.freqband,...
                 'badchrm',1,'badtrrm',1,'capFile',capFile,...
                 'overridechnms',1,'verb',1,'fs',250);
             
