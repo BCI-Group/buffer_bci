@@ -34,5 +34,21 @@ classdef GP
             obj.train_x(n+1, :) = x;
             obj.train_y(n+1, :) = y;
         end
+        
+        function s = saveobj(obj)
+            s.train_x = obj.train_x;
+            s.train_y = obj.train_y;
+        end
+    end
+        methods(Static)
+        function obj = loadobj(s)
+            if isstruct(s)
+                obj = GP;
+                obj.train_x = s.train_x;
+                obj.train_y = s.train_y;
+            else
+                obj = s;
+            end
+        end
     end
 end
