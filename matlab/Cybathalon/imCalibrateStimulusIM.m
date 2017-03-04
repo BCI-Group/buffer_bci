@@ -1,3 +1,28 @@
+%----------------------------------------------------------------------
+% Graphical interface used during the imaginary movement calibration.
+% 
+% The interface components are three main circles and a smaller one in the
+% middle. A small progress indicator is also present on the left corner of
+% the window.
+% 
+% The experiment is as follows: All the circles will be shown in grey.
+% After some predefined time, the circle in the middle will turn red
+% indicating that a command is about to take place. Then, a random order
+% will be indicated by highlighting one of the three main circles and
+% writing the name of the body part to move on the center of the screen.
+% This circle is repeated until the end of the experiment.
+%
+%
+% All changes on the interface are are followed by an event, so we can
+% communicate this script with the other parts of the program.
+%
+% Author: Alejandro González Rogel (s4805550)
+%         Marzieh Borhanazad (s4542096)
+%         Ankur Ankan (s4753828)
+% Forked from https://github.com/jadref/buffer_bci
+%----------------------------------------------------------------------
+
+
 configureExp;
 
 % make the target sequence

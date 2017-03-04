@@ -1,3 +1,12 @@
+%----------------------------------------------------------------------
+% Offers a graphical interface from which we can select the phase of the
+% pipeline we want to do next.
+%
+% Author: Alejandro González Rogel (s4805550)
+%         Marzieh Borhanazad (s4542096)
+%         Ankur Ankan (s4753828)
+% Forked from https://github.com/jadref/buffer_bci
+%----------------------------------------------------------------------
 configureExp;
 % create the control window and execute the phase selection loop
 %try
@@ -146,7 +155,7 @@ while (ishandle(contFig))
             sendEvent('subject',subject);
             sendEvent(phaseToRun,'start');
             sendEvent('startPhase.cmd',phaseToRun); % Run the SigProc for the ErrP calibration
-            pause(0.5)  % If the events are produced at the same time
+            pause(1)  % If the events are produced at the same time
             % SigProcBufferIM won't recognice the second one
             sendEvent('startPhase.cmd','classify_im'); % Run the SigProc for the IM classifier
             try
@@ -176,7 +185,7 @@ while (ishandle(contFig))
             sendEvent('subject',subject);
             sendEvent(phaseToRun,'start');
             sendEvent('startPhase.cmd','classify_errp'); % Run the SigProc for the ErrP calibration
-            pause(0.5)  % If the events are produced at the same time
+            pause(1)  % If the events are produced at the same time
             % SigProcBufferIM won't recognice the second one
             sendEvent('startPhase.cmd','classify_im'); % Run the SigProc for the IM classifier
             

@@ -1,3 +1,18 @@
+%----------------------------------------------------------------------
+% Main loop that allows a participant to send instructions to the
+% Cybathalon game based on brain signal recordings.
+% 
+% It also upgrades the main imaginary movement classifier based on the
+% analisys of the ErrP signal (More information in the report).
+%
+% Provides a graphical interface similar to the one used for the
+% calibration phase.
+% 
+% Author: Alejandro González Rogel (s4805550)
+%         Marzieh Borhanazad (s4542096)
+%         Ankur Ankan (s4753828)
+% Forked from https://github.com/jadref/buffer_bci
+%----------------------------------------------------------------------
 configureExp;
 if ( ~exist('epochFeedbackTrialDuration') || isempty(epochFeedbackTrialDuration) )
   epochFeedbackTrialDuration=trialDuration;
@@ -5,7 +20,7 @@ end;
 
 rtbDuration=.5; %.5s between commands
 
-cybathalon = struct('host','localhost','port',5555,'player',1,...
+cybathalon = struct('host','localhost','port',gamePortInst,'player',1,...
                     'cmdlabels',{{'jump' 'slide' 'speed' 'rest'}},'cmddict',[2 3 1 99],...
 						  'cmdColors',[.6 0 .6;.6 .6 0;0 .5 0;.3 .3 .3]',...
                     'socket',[],'socketaddress',[]);
@@ -75,13 +90,10 @@ for si=1:max(100000,nSeq);
   %set(h(tgtSeq(:,si)>0),'facecolor',tgtColor);
   set(h(end),'facecolor',tgtColor); % green fixation indicates trial running
   drawnow;% expose; % N.B. needs a full drawnow for some reason
-  if ( earlyStopping )
-	 % cont-classifier, so tell it to clear the prediction filter for start new trial
-	 sendEvent('classifier.reset','now'); 
-  else
-	 % event-classifier, so send the event which triggers to classify this data-block
-	 sendEvent('classifier.apply','now'); % tell the classifier to apply from now
-  end
+  
+ % event-classifier, so send the event which triggers to classify this data-block
+ sendEvent('classifier.apply','now'); % tell the classifier to apply from now
+ 
   trlStartTime=getwTime();
   ev=sendEvent('stimulus.classification_im','start');
   state=buffer('poll'); % Ensure we ignore any predictions before the trial start  
@@ -89,14 +101,11 @@ for si=1:max(100000,nSeq);
 	 fprintf(1,'Waiting for predictions after: (%d samp, %d evt)\n',...
 				state.nSamples,state.nEvents);
   end;
-  if ( earlyStopping )
-	 % wait for new prediction events to process *or* end of trial time
-	 [devents,state,nevents,nsamples]=buffer_newevents(buffhost,buffport,state,'classifier.prediction',[],epochFeedbackTrialDuration*1000+1500);
-  else
+
     sleepSec(epochFeedbackTrialDuration); 
-	 % wait for classifier prediction event
-	 [devents,state,nevents,nsamples]=buffer_newevents(buffhost,buffport,state,'classifier.prediction',[],2000);
-  end
+ % wait for classifier prediction event
+ [devents,state,nevents,nsamples]=buffer_newevents(buffhost,buffport,state,'classifier_im.prediction',[],2000);
+ 
   trlEndTime=getwTime();
   
   % do something with the prediction (if there is one), i.e. give feedback

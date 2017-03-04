@@ -1,9 +1,14 @@
 function []=imSigProcBufferIM(varargin)
-% buffer controlled execution of the different signal processing phases
-% except for the ones related to ErrP signals.
+%----------------------------------------------------------------------
+% Controlls for all those phases that require brain signal processing and
+% are related to the imaginary movement signal processing.
+%
+% This function will remain in a contant loop until an exit event is
+% captures. Until that time, it continuously looks for events that indicate
+% the start of a new phase of the pipeline and acts according to that.
 %
 % Trigger events: (type,value)
-%  (startPhase.cmd,eegviewer)  -- show the live signal viewer
+%  (startPhase.cmd,eegviewer_im)  -- show the live signal viewer
 %  (startPhase.cmd,practice_im)  -- Allows for practice of the Imaginary
 %                                   movement calibration phase
 %  (startPhase.cmd,calibrate_im)  -- start calibration phase processing.
@@ -29,23 +34,16 @@ function []=imSigProcBufferIM(varargin)
 %  (classifier_im.prediction,val)  -- classifier prediction events.  
 %                                 val is the classifier decision value
 %
-%  []=startSigProcBuffer(varargin)
-%
 % Options:
 %   phaseEventType -- 'str' event type which says start a new phase                 ('startPhase.cmd')
 %   epochEventType -- 'str' event type which indicates start of calibration epoch.  ('stimulus_im.target')
 %                     This event's value is used as the class label
-%   testepochEventType -- 'str' event type which start of data to generate a prediction for.  ('classifier.apply')
-%   clsfr_type     -- 'str' the type of classifier to train.  One of: 
-%                        'erp'  - train a time-locked response (evoked response) classifier
-%                        'ersp' - train a power change (induced response) classifier
+%   testepochEventType -- 'str' event type which start of data to generate a prediction for.  ('stimulus.classification_im')
 %   trlen_ms       -- [int] trial length in milliseconds.  This much data after each  (1000)
 %                     epochEvent saved to train the classifier
 %   freqband       -- [float 4x1] frequency band to use the the spectral filter during ([.1 .5 10 12])
 %                     pre-processing
 %
-%   erpOpts        -- {cell} cell array of additional options to pass the the erpViewer
-%                     SEE: erpViewer for a list of options available
 %   calibrateOpts  -- {cell} addition options to pass to the calibration routine
 %                     SEE: buffer_waitData for information on th options available
 %   trainOpts      -- {cell} cell array of additional options to pass to the classifier trainer, e.g.
@@ -62,15 +60,13 @@ function []=imSigProcBufferIM(varargin)
 %   buffport       -- int, port number on which ft-buffer is running                   (1972)
 %   epochPredFilt  -- [float/str/function_handle] prediction filter for smoothing the 
 %                      epoch output classifier.
-% Examples:
-%   startSigProcBuffer(); % run with standard parameters using the GUI to get more info.
 %
-%  % Run where epoch is any of row/col or target flash and saving 600ms after these events for classifier training
-%   startSigProcBuffer('epochEventType',{'stimulus.target','stimulus.rowFlash','stimulus.colFlash'},'trlen_ms',600); 
-%  % Run where epoch is target flash and saving 600ms after these events for classifier training
-%  %   in testing phase, we generate a prediction for every row/col flash
-%   startSigProcBuffer('epochEventType',{'stimulus.target'},'testepochEventType',{'stimulus.rowFlash','stimulus.colFlash'},'trlen_ms',600); 
-
+%
+% Author: Alejandro González Rogel (s4805550)
+%         Marzieh Borhanazad (s4542096)
+%         Ankur Ankan (s4753828)
+% Forked from https://github.com/jadref/buffer_bci
+%-------------------------------------------------------------------------
 % setup the paths if needed
 wb=which('buffer'); 
 mdir=fileparts(mfilename('fullpath'));
@@ -180,8 +176,15 @@ while ( true )
         fname=[dname_im '_' subject '_' datestr];
         fprintf('Loading training data from : %s\n',fname);
         if ( ~(exist([fname '.mat'],'file') || exist(fname,'file')) ) 
-          warning(['Couldnt find a classifier to load file: ' fname]);
-          break;
+          warning(['We could not find a data file with the name: ' fname ...
+              '. Please, choose the desired file']);
+            [fn,pth]=uigetfile('.','Pick imaginary movement data file'); 
+            if ( isequal(fn,0) || isequal(pth,0) )
+                error('No IM data selected.')
+                break;
+            else
+                fname=fullfile(fn);
+            end;
         end
         load(fname); 
         trainSubj=subject;
@@ -216,7 +219,15 @@ while ( true )
     if ( ~isequal(clsSubj,subject) || ~exist('clsfr','var') ) 
       clsfrfile = [cname_im '_' subject '_' datestr];
       if ( ~(exist([clsfrfile '.mat'],'file') || exist(clsfrfile,'file')) ) 
-		  clsfrfile=[cname_im '_' subject]; 
+		  warning(['We could not find a classifier with the name: ' clsfrfile ...
+              '. Please, choose the desired classifier']);
+            [fn,pth]=uigetfile('.','Pick imaginary movement classifier'); 
+            if ( isequal(fn,0) || isequal(pth,0) )
+                error('No classifier selected.')
+                break;
+            else
+                clsfrfile=fullfile(fn);
+            end;
 	  end;
       if(opts.verb>0)fprintf('Loading classifier from file : %s\n',clsfrfile);end;
       clsfr=load(clsfrfile);
@@ -228,6 +239,7 @@ while ( true )
 							'predFilt',opts.epochPredFilt,...
 							'endType',{'stimulus.testing','testing','test','epochfeedback','eventfeedback'},...
                             'endValue',{'end'},...
+                            'predEventType','classifier_im.prediction',...
                             'verb',opts.verb,...
 							'trlen_ms',opts.trlen_ms,...
 							opts.epochFeedbackOpts{:}); % allow override with epochFeedbackOpts
