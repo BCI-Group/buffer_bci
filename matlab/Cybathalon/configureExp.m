@@ -1,4 +1,12 @@
 %----------------------------------------------------------------------
+% Variable declaration and initialization.
+%
+% Author: Alejandro González Rogel (s4805550)
+%         Marzieh Borhanazad (s4542096)
+%         Ankur Ankan (s4753828)
+% Forked from https://github.com/jadref/buffer_bci
+%----------------------------------------------------------------------
+
 % One-Time initialization code
 % guard to not run the slow one-time-only config code every time...
 if ( ~exist('configRun','var') || isempty(configRun) ) 
@@ -44,7 +52,8 @@ end
 verb         =1; % verbosity level for debug messages, 1=default, 0=quiet, 2=very verbose
 buffhost     ='localhost';
 buffport     =1972; % Port to connect to the EEG buffer
-gamePort     =6666; % Port to connect to the game (just valid during training).
+gamePortInst = 5555; % Port to send an instruction to the game
+gamePortStage     =6666; % Port for receiving game state (just valid during ErrP training).
 
 % Imaginary movement training parameters
 nSymbs       =3; % E,N,W,S for 4 outputs, N,W,E  for 3 outputs
@@ -55,9 +64,9 @@ nSeq_Prac    =2*nSymbs; % Number of item to practice with in the Practice phase
 
 %%%%%%%%%%%%%%%%
 epochDuration     =1.5;
-trialDuration     = 3; % epochDuration*3; % = 4.5s trials
-baselineDuration  =epochDuration;   % Time indicating that trial is about to start
-intertrialDuration=epochDuration;   % Time between trials
+trialDuration     = 3; % epochDuration*3;
+baselineDuration  = epochDuration;   % Time indicating that trial is about to start
+intertrialDuration = epochDuration;   % Time between trials
 
 % Graphical interface options
 axLim        =[-1.5 1.5]; % size of the display axes
@@ -70,7 +79,7 @@ txtColor     =[1 1 1]; % color of the cue text
 
 % Other interface parameters
 
-timeout_ms = 500; % Miliseconds the buffer is waiting for a new event of a pipeline phase.º 
+timeout_ms = 500; % Miliseconds the buffer is waiting for a new event of a pipeline phase.
 
 % Name of data files and classifiers
 % TODO This names are still included in the imSigProcBufferErrP and
@@ -82,12 +91,14 @@ cname_errp = 'clsfr_ErrP';
 
 % IM Calibration/data-recording options
 offset_ms_im     = [250 250]; % give .25s for user to start/finish
-trlen_ms_im      = epochDuration*1000; % how often to run the classifier of imaginary movement.
+trlen_ms_im      = 1500; % how often to run the classifier of imaginary movement.
 calibrateOpts_im ={'offset_ms',offset_ms_im};
 
 % % ErrP Calibration/data-recording options
-trlen_ms_ErrP      = 650; % how much time we collect data for the analysis of ErrP
+trlen_ms_ErrP      = 1000; % how much time we collect data for the analysis of 
+wait_end = 5;   % Number of event to wait at the end of the stage to be sure the stage is finished.
 calibrateOpts_errp ={};
+cybathalon_path = [pwd '\..\..\..\BrainRunners\CybathlonBrainRunnersTraining1.225\Win64\'];
 
 
 % IM classifier training options
@@ -106,4 +117,4 @@ trainOpts_im={'badchrm',1,'width_ms',welch_width_ms,'badtrrm',1,'spatialfilter',
 % ErrP classifier options
 
 freqband_errp = [0.5 1 9.5 10];
-trainOpts_errp = {};
+trainOpts_errp = {'spatialfilter','car','badchrm',1,'badtrrm',1,'overridechnms',1}; % 'fs',250

@@ -1,10 +1,29 @@
-udpr = dsp.UDPReceiver('LocalIPPort',gamePort,'MessageDataType','int8');
+%----------------------------------------------------------------------
+% Allows the user to play the game while collecting data about the ErrP signal
+% after every instruction that is sended to the game.
+%
+% Two different connections are needed when connecting to the game. One
+% will be used to send instructions to the game, the other one will be used
+% to receive feedback about the stage the user is in (which number corresponds
+% to which stage can be found in the Cybathalon documentation).
+% 
+% Provides a graphical interface similar to the one used for the
+% calibration phase.
+% 
+% Author: Alejandro González Rogel (s4805550)
+%         Marzieh Borhanazad (s4542096)
+%         Ankur Ankan (s4753828)
+% Forked from https://github.com/jadref/buffer_bci
+%----------------------------------------------------------------------
+
+configureExp;
+
+udpr = dsp.UDPReceiver('LocalIPPort',gamePortStage,'MessageDataType','int8');
 % To prevent the loss of packets, call the |setup| method
 % on the object before the first call to the |step| method.
 % Here I just do the first step.
 step(udpr);
 
-configureExp;
 if ( ~exist('epochFeedbackTrialDuration') || isempty(epochFeedbackTrialDuration) )
   epochFeedbackTrialDuration=trialDuration;
 end;
@@ -12,7 +31,7 @@ end;
 
 rtbDuration=.5; %.5s between commands
 
-cybathalon = struct('host','localhost','port',5555,'player',1,...
+cybathalon = struct('host','localhost','port',gamePortInst,'player',1,...
                     'cmdlabels',{{'jump' 'slide' 'speed' 'rest'}},'cmddict',[2 3 1 99],...
 						  'cmdColors',[.6 0 .6;.6 .6 0;0 .5 0;.3 .3 .3]',...
                     'socket',[],'socketaddress',[]);
@@ -74,6 +93,7 @@ state=[];
 endTesting=false; dvs=[];
 prevStage=[];
 endCont = 0;
+stageCont = 0;
 for si=1:max(100000,nSeq);
 
   if ( ~ishandle(fig) || endTesting ) break; end;
@@ -81,13 +101,10 @@ for si=1:max(100000,nSeq);
   %set(h(tgtSeq(:,si)>0),'facecolor',tgtColor);
   set(h(end),'facecolor',tgtColor); % green fixation indicates trial running
   drawnow;% expose; % N.B. needs a full drawnow for some reason
-  if ( earlyStopping )
-	 % cont-classifier, so tell it to clear the prediction filter for start new trial
-	 sendEvent('classifier.reset','now'); 
-  else
-	 % event-classifier, so send the event which triggers to classify this data-block
-	 sendEvent('classifier.apply','now'); % tell the classifier to apply from now
-  end
+
+ % event-classifier, so send the event which triggers to classify this data-block
+ sendEvent('classifier.apply','now'); % tell the classifier to apply from now
+
   trlStartTime=getwTime();
   ev=sendEvent('stimulus.classification_im','start');
   state=buffer('poll'); % Ensure we ignore any predictions before the trial start  
@@ -95,14 +112,11 @@ for si=1:max(100000,nSeq);
 	 fprintf(1,'Waiting for predictions after: (%d samp, %d evt)\n',...
 				state.nSamples,state.nEvents);
   end;
-  if ( earlyStopping )
-	 % wait for new prediction events to process *or* end of trial time
-	 [devents,state,nevents,nsamples]=buffer_newevents(buffhost,buffport,state,'classifier.prediction',[],epochFeedbackTrialDuration*1000+1500);
-  else
+
     sleepSec(epochFeedbackTrialDuration); 
 	 % wait for classifier prediction event
-	 [devents,state,nevents,nsamples]=buffer_newevents(buffhost,buffport,state,'classifier.prediction',[],2000);
-  end
+	 [devents,state,nevents,nsamples]=buffer_newevents(buffhost,buffport,state,'classifier_im.prediction',[],2000);
+
   trlEndTime=getwTime();
   
   % do something with the prediction (if there is one), i.e. give feedback
@@ -135,20 +149,6 @@ for si=1:max(100000,nSeq);
     drawnow;
     sendEvent('stimulus.predTgt',predTgt);
     
-    % Get current stage of the game
-    actStage=step(udpr);
-    if isempty(actStage)
-        actStage = prevStage;
-        endCont = endCont + 1;
-    else
-        endCont = 0;
-    end
-    prevStage = actStage;
-    
-    if endCont>=5;
-        endTesting = true;
-    end
-    
 	% send the command to the game server
 	 try;
 		cybathalon.socket.send(javaObject('java.net.DatagramPacket',uint8([10*cybathalon.player+cybathalon.cmddict(predTgt) 0]),1));
@@ -158,13 +158,66 @@ for si=1:max(100000,nSeq);
 		  connectionWarned=connectionWarned+1;
 		  warning('Error sending to the Cybathalon game.  Is it running?\n');
 		end
-	 end
-
-										  % now wait a little to give some RTB time
+     end
+     
+         % Get current stage of the game
+    actStage=step(udpr);
+		% now wait a little to give some RTB time
 	 drawnow;
 	 sleepSec(rtbDuration);
 	 set(h(predTgt),'facecolor',cybathalon.cmdColors(:,predTgt));
 	 set(h(end),'facecolor',bgColor); % clear the feedback
+     
+     if isempty(actStage)
+        actStage = prevStage;
+        endCont = endCont + 1;
+    else
+        endCont = 0;
+    end
+    prevStage = actStage;
+    
+    if endCont>=wait_end
+        sendEvent('stimulus_errp.target', -1);
+        stageCont = stageCont + 1;
+        endCont = 0;
+        if stageCont >= 3
+            endTesting = true;
+            pause(2)    % So the signal processor can finish anything it is doing
+        else
+            % Create new stage
+            stage  =[];
+            tmp = [1 2 3];
+            for i=1:2
+                stage = [stage, tmp(randperm(3))];
+            end
+            %tmp = [1 2 3];
+            %for i=1:3
+            %    stage = [stage, tmp(randperm(3)),[0]];
+            %end
+            stage = stage(1,1:end-1);
+            % Save previous stage to history
+            fid1 = fopen(fullfile(cybathalon_path,'level.csv'),'r'); %# open csv file for reading
+            fid2 = fopen(fullfile(cybathalon_path,'level_history.csv'),'a'); %# open new csv file
+            line = fgets(fid1); %# read line by line
+            fprintf(fid2,'%s',line); %# write the line to the new file
+
+            fclose(fid1);
+            fclose(fid2);
+            
+            % Write to file
+            fileID = fopen(fullfile([pwd '\..\..\..\BrainRunners\CybathlonBrainRunnersTraining1.225\Win64\'],'level.csv'),'w');
+            for i=1:length(stage)-1
+                fprintf(fileID,'%o;',stage(i));
+            end
+            fprintf(fileID,'%o',stage(end));
+            fclose(fileID);
+            set(txthdl,'string', {['Stage ' num2str(stageCont) ' is over.'],...
+                'Take a rest and prepare next stage.'}, 'visible', 'on'); drawnow;
+            waitforbuttonpress;
+            set(txthdl,'string', '', 'visible', 'on'); drawnow;
+        end
+    end
+   
 	 
   end % if classifier prediction  
   drawnow;
@@ -178,4 +231,5 @@ sendEvent('stimulus.testing','end');
 if ( ishandle(fig) ) % thanks message
 set(txthdl,'string',{'That ends the testing phase.','Thanks for your patience'}, 'visible', 'on', 'color',[0 1 0]);
 pause(3);
+close(fig)
 end
