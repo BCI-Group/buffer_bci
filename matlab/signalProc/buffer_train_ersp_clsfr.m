@@ -11,7 +11,7 @@ function [clsfr,res,X,Y]=buffer_train_ersp_clsfr(X,Y,hdr,varargin);
 %       {[float ch x time] epoch x 1} cell array of data
 %  Y -- [epoch x 1] set of labels for the data epochs
 %       OR
-%       [struct epoch x 1] set of buf event structures which contain epoch labels in value field
+%       [struct epoch x 1] set of buf event structurs which contain epoch labels in value field
 %  hdr-- [struct] buffer header structure
 % Options:
 %  capFile -- [str] name of file which contains the electrode position info  ('1010')
@@ -95,9 +95,42 @@ else % fall back on showing all data
   ch_names=di.vals; ch_pos  =[]; iseeg(:)=true;
 end
 
+si = size(X);
+%data = zeros(si(3), 1200);
+%output = zeros(si(3), 1);
+
+%for i=1:si(3)
+%    data(i, :) = reshape(X(i).buf, [1, 1200]);
+%    output(i) = Y(i).value;
+%end
+
+data = reshape(X, [1200, si(3)]);
+trans_data = transpose(data);
+m = mean(trans_data);
+ma = max(trans_data);
+mi = min(trans_data);
+m_arr = zeros(si(3), 1200);
+ma_arr = zeros(si(3), 1200);
+mi_arr = zeros(si(3), 1200);
+
+for i=1:si(3)
+    m_arr(i, :) = m;
+    ma_arr(i, :) = ma;
+    mi_arr(i, :) = mi;
+end
+
+X_norm = (trans_data - m_arr)./ (ma_arr - mi_arr);
+% save('data_X', 'X_norm');
+% save('data_Y', 'Y');
+%run ../classifiers/GP.m;
+clsfr = GP();
+clsfr.train_x = X_norm;
+clsfr.train_y = Y;
+
 % call the actual function which does the classifier training
-[clsfr,res,X,Y]=train_ersp_clsfr(X,Y,'ch_names',ch_names,'ch_pos',ch_pos,'fs',fs,'badCh',~iseeg,varargin{:});
-return;
+% clsfr=fitrgp(X_norm,Y);
+
+% return;
 
 %---------------------
 function testCase()
