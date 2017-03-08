@@ -104,14 +104,14 @@ si = size(X);
 %    output(i) = Y(i).value;
 %end
 
-data = reshape(X, [1200, si(3)]);
+data = reshape(X, [si(1)*si(2), si(3)]);
 trans_data = transpose(data);
 m = mean(trans_data);
 ma = max(trans_data);
 mi = min(trans_data);
-m_arr = zeros(si(3), 1200);
-ma_arr = zeros(si(3), 1200);
-mi_arr = zeros(si(3), 1200);
+m_arr = zeros(si(3), si(1)*si(2));
+ma_arr = zeros(si(3), si(1)*si(2));
+mi_arr = zeros(si(3), si(1)*si(2));
 
 for i=1:si(3)
     m_arr(i, :) = m;
@@ -119,13 +119,24 @@ for i=1:si(3)
     mi_arr(i, :) = mi;
 end
 
-X_norm = (trans_data - m_arr)./ (ma_arr - mi_arr);
-% save('data_X', 'X_norm');
-% save('data_Y', 'Y');
+size_Y = size(Y);
+% total_samples = size_Y(0) - 1;
+Y = Y(1: (size_Y(1)-1), :);
+new_Y = [];
+for i = 1:(size_Y(1) - 1)
+    temp = char(Y(i));
+    new_Y(i) = str2num(temp(1));
+end
+
+new_Y = new_Y';
+
+% X_norm = (trans_data - m_arr)./ (ma_arr - mi_arr);
+save('data_X', 'trans_data');
+save('data_Y', 'new_Y');
 %run ../classifiers/GP.m;
 clsfr = GP();
-clsfr.train_x = X_norm;
-clsfr.train_y = Y;
+clsfr.train_x = trans_data;
+clsfr.train_y = new_Y;
 
 % call the actual function which does the classifier training
 % clsfr=fitrgp(X_norm,Y);
