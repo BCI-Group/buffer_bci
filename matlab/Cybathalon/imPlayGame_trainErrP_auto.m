@@ -153,6 +153,7 @@ for si=1:max(100000,nSeq);
     sendEvent('stimulus.predTgt',predTgt);
     
     % Get current stage of the game
+        % Get current stage of the game
     actStage=step(udpr);
     if startStage
         step(udpr);
@@ -170,7 +171,23 @@ for si=1:max(100000,nSeq);
     end
     prevStage = actStage;
     
-	% send the command to the game server
+    random = rand(1);
+    predTgt = actStage;
+    if random > 0.75
+        predTgt = round(rand(1)*4);
+    end
+    if predTgt == 0
+        predTgt = 4;
+    else if predTgt == 1
+        predTgt = 3;
+    else if predTgt == 2
+        predTgt = 1;
+    else
+        predTgt = 2;
+    end
+    end
+    end
+    
 	 try;
 		cybathalon.socket.send(javaObject('java.net.DatagramPacket',uint8([10*cybathalon.player+cybathalon.cmddict(predTgt) 0]),1));
     if predTgt == 4
@@ -197,7 +214,7 @@ for si=1:max(100000,nSeq);
 	 sleepSec(rtbDuration);
 	 set(h(predTgt),'facecolor',cybathalon.cmdColors(:,predTgt));
 	 set(h(end),'facecolor',bgColor); % clear the feedback
-    
+
     if endCont>=wait_end
         sendEvent('stimulus_errp.target', -1);
         stageCont = stageCont + 1;
@@ -210,13 +227,12 @@ for si=1:max(100000,nSeq);
             stage  =[];
             %tmp = [1 2 3];
             %for i=1:2
-            %    stage = [stage, [0], tmp(randperm(3))];
+            %    stage = [stage, tmp(randperm(3))];
             %end
             tmp = [1 2 3];
-            for i=1:3
+            for i=1:4
                 stage = [stage, [0], tmp(randperm(3))];
             end
-
             % Save previous stage to history
             fid1 = fopen(fullfile(cybathalon_path,'level.csv'),'r'); %# open csv file for reading
             fid2 = fopen(fullfile(cybathalon_path,'level_history.csv'),'a'); %# open new csv file
