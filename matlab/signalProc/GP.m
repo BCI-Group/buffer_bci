@@ -1,54 +1,62 @@
 classdef GP
     properties
-        train_x
-        train_y
+        train_x;
+        train_y;
+        clfrs;
+        pre_y;
     end
     
     methods
-        function K = rbf(obj, x, y)
-            n1 = size(x, 1);
-            n2 = size(y, 1);
-            euclidean_dist = zeros(n1, n2);
-            for i = 1:n1
-                for j = 1:n2
-                    euclidean_dist(i, j) = sum((x(i, :) - y(j, :)).^2);
+        function y = postprocess_y(y)
+            n = size(y)(1);
+            sum_across = sum(y, 2);
+            for i=1:n
+                arr = sum_across(i);
+                arr(arr==max(arr)) = 1;
+                arr(arr~=max(arr)) = 0;
+                sum_across(i, 1:4) = arr;
+            end;
+            y = sum_across;
+        end;
+        
+        function y = preprocess_y(obj, y)
+            n = size(y)(1);
+            new_y = zeros(n, 4);
+            for i=1:n
+                if strcmp(y(i, 1), 'Left')
+                    new_y(i, 1) = 1;
+                elseif strcmp(y(i, 1), 'Right')
+                    new_y(i, 2) = 1;
+                elseif strcmp(y(i, 1), 'Feet')
+                    new_y(i, 3) = 1;
+                else
+                    new_y(i, 4) = 1;
                 end;
             end;
+        end;
+        
+        function train(obj, X, y)
+            X = obj.preprocess_x(X);
+            y = obj.preprocess_y(y);
             
-            gamma = 1;
-            K = exp(-gamma * euclidean_dist);
-        end
+            obj.clfrs = [];
+            for i=1:4
+                clfr = BaseGP;
+                clfr.train_X = X;
+                clfr.train_y = y(:, i);
+                obj.clfrs(i) = clfr;
+            end;
+        end;
         
-        function [mu_, s_] = predict(obj, x)
-            K_ = obj.rbf(obj.train_x, obj.train_x);
-            K_x = obj.rbf(obj.train_x, x);
-            K_xx = obj.rbf(x, x);
-            
-            m_inv = inv(K_);
-            mu_ = K_x' * m_inv * obj.train_y;
-            s_ = K_xx - K_x' * m_inv * K_x;
-        end
-        
-        function update(obj, x, y)
-            n = size(obj.train_x, 1);
-            obj.train_x(n+1, :) = x;
-            obj.train_y(n+1, :) = y;
-        end
-        
-        function s = saveobj(obj)
-            s.train_x = obj.train_x;
-            s.train_y = obj.train_y;
-        end
-    end
-        methods(Static)
-        function obj = loadobj(s)
-            if isstruct(s)
-                obj = GP;
-                obj.train_x = s.train_x;
-                obj.train_y = s.train_y;
-            else
-                obj = s;
-            end
-        end
-    end
-end
+        function y = predict(obj, X)
+            n = size(X)(1);
+            X = obj.preprocess_x(X);
+            y = zeros(n, 4);
+            for j=1:4
+                clfr_p = obj.clfrs(j);
+                y(1:n, j) = clfr_p.predict(X);
+            end;
+            y = obj.postprocess_y(y);
+        end;
+    end;
+end;
