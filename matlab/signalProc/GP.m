@@ -85,5 +85,10 @@ classdef GP
             end;
             y = obj.postprocess_y(y);
         end;
+        
+        function s = saveobj(obj)
+            s.train_x = obj.train_x;
+            s.train_y = obj.train_y;
+        end;
     end;
 end
