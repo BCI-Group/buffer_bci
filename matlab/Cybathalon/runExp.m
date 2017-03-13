@@ -29,7 +29,6 @@ menustr={'0) EEG IM'            'eegviewer_im';
     '' '';
     'a) Cybathalon Control'   'play_cybathalon';
     '' '';
-    'K) Keyboard Control'    'keyboardcontrol';
     'q) quit'                'exit';
     };
 txth=text(.25,.5,menustr(:,1),'fontunits','pixel','fontsize',.05*wSize(4),...
@@ -199,20 +198,6 @@ while (ishandle(contFig))
             end
             
             %--------------------------------------------------------------
-        case {'keyboardcontrol'};
-            sendEvent('subject',subject);
-            sendEvent(phaseToRun,'start');
-            sendEvent('startPhase.cmd',phaseToRun);
-            try
-                cybathlon_keyboard_control;
-            catch
-                fprintf('Error in : %s',phaseToRun);
-                le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',...
-                    le.identifier,le.message);
-                sendEvent(phaseToRun,'end');
-            end
-            
-            %--------------------------------------------------------------
         case {'quit','exit'};
             % shut down signal proc
             sendEvent('startPhase.cmd',phaseToRun);
@@ -222,4 +207,4 @@ while (ishandle(contFig))
 end
 
 % give thanks
-uiwait(msgbox({'Thankyou for participating in our experiment.'},'Thanks','modal'),10);
+uiwait(msgbox({'Thank you for participating in our experiment.'},'Thanks','modal'),10);
