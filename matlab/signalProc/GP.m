@@ -76,7 +76,7 @@ classdef GP
                 [coefs, scores, variances] = princomp(X, 'econ');
                 pervar = 100*cumsum(variances) / sum(variances);
 %                 d = max(find(pervar < 95));
-                d = 1;
+                d = 6;
                 X = X(:, 1:d);
                 
                 mean_train = mean(X);
