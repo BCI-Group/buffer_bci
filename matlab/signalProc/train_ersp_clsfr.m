@@ -1,4 +1,4 @@
-function [clsfr,res,X,Y]=train_ersp_clsfr(X,Y,varargin)
+function [clsfr,X,Y]=train_ersp_clsfr(X,Y,varargin)
 % train a simple ERSP (spectral power) classifer
 % 
 % [clsfr,res,X,Y]=train_ersp_clsfr(X,Y,...)
@@ -335,76 +335,80 @@ end
 %6) train classifier
 if ( opts.classify ) 
   fprintf('6) train classifier\n');
-  [clsfr, res]=cvtrainLinearClassifier(X,Y,[],opts.nFold,'zeroLab',opts.zeroLab,varargin{:});
+  clsfr = GP;
+  [n1, n2, n3] = size(X);
+  X = reshape(X, [n1*n2, n3])';
+  clsfr = clsfr.train(X, Y);
+%   [clsfr, res]=cvtrainLinearClassifier(X,Y,[],opts.nFold,'zeroLab',opts.zeroLab,varargin{:});
 else
   clsfr=struct();
 end
 
-if ( opts.visualize ) 
-  if ( size(res.tstconf,2)==1 ) % confusion matrix is correct
-     % plot the confusion matrix
-    confMxFig=figure(4); set(confMxFig,'name','Class confusion matrix');	 
-	 if ( size(clsfr.spMx,1)==1 ) clabels={clsfr.spKey{clsfr.spMx>0} clsfr.spKey{clsfr.spMx<0}};
-	 else                         [ans,li]=find(clsfr.spMx>0); clabels=clsfr.spKey(li);
-	 end
-    imagesc(reshape(res.tstconf(:,1,res.opt.Ci),sqrt(size(res.tstconf,1)),[]));
-    set(gca,'xtick',1:numel(clabels),'xticklabel',clabels,...
-        'ytick',1:numel(clabels),'yticklabel',clabels);
-    xlabel('True Class'); ylabel('Predicted Class'); colorbar;
-    title('Class confusion matrix');
-  end
-end
+% if ( opts.visualize ) 
+%   if ( size(res.tstconf,2)==1 ) % confusion matrix is correct
+%      % plot the confusion matrix
+%     confMxFig=figure(4); set(confMxFig,'name','Class confusion matrix');	 
+% 	 if ( size(clsfr.spMx,1)==1 ) clabels={clsfr.spKey{clsfr.spMx>0} clsfr.spKey{clsfr.spMx<0}};
+% 	 else                         [ans,li]=find(clsfr.spMx>0); clabels=clsfr.spKey(li);
+% 	 end
+%     imagesc(reshape(res.tstconf(:,1,res.opt.Ci),sqrt(size(res.tstconf,1)),[]));
+%     set(gca,'xtick',1:numel(clabels),'xticklabel',clabels,...
+%         'ytick',1:numel(clabels),'yticklabel',clabels);
+%     xlabel('True Class'); ylabel('Predicted Class'); colorbar;
+%     title('Class confusion matrix');
+%   end
+% end
 
 
 %7) combine all the info needed to apply this pipeline to testing data
-clsfr.type        = 'ERsP';
-clsfr.fs          = fs;   % sample rate of training data
-clsfr.detrend     = opts.detrend; % detrend?
-clsfr.isbad       = isbadch;% bad channels to be removed
-clsfr.spatialfilt = R;    % spatial filter used for surface laplacian
-if ( any(strcmp(opts.spatialfilter,{'trwht','adaptspatialfilter'})) ) % configure for apaptive use later
-  clsfr.spatialfilt=[];
-  clsfr.adaptspatialfilt=opts.adaptspatialfilt; % no adaption
-  clsfr.chCov      =Sigma;
-end
+% clsfr.type        = 'ERsP';
+% clsfr.fs          = fs;   % sample rate of training data
+% clsfr.detrend     = opts.detrend; % detrend?
+% clsfr.isbad       = isbadch;% bad channels to be removed
+% clsfr.spatialfilt = R;    % spatial filter used for surface laplacian
+% if ( any(strcmp(opts.spatialfilter,{'trwht','adaptspatialfilter'})) ) % configure for apaptive use later
+%   clsfr.spatialfilt=[];
+%   clsfr.adaptspatialfilt=opts.adaptspatialfilt; % no adaption
+%   clsfr.chCov      =Sigma;
+% end
 
-clsfr.filt        = []; % DUMMY -- so ERP and ERSP classifier have same structure fields
-clsfr.outsz       = []; % DUMMY -- so ERP and ERSP classifier have same structure fields
-clsfr.timeIdx     = timeIdx; % time range to apply the classifer to
-
-clsfr.windowFn    = winFn;% temporal window prior to fft
-clsfr.welchAveType= opts.aveType;% other options to pass to the welchpsd
-clsfr.freqIdx     = fIdx; % start/end index of frequencies to keep
-clsfr.featFilt    = featFilt; % feature normalization type
-clsfr.ffState     = ffState;  % state of the feature filter
-
-clsfr.badtrthresh = []; if ( ~isempty(trthresh) && opts.badtrscale>0 ) clsfr.badtrthresh = trthresh(end)*opts.badtrscale; end
-clsfr.badchthresh = []; if ( ~isempty(chthresh) && opts.badchscale>0) clsfr.badchthresh = chthresh(end)*opts.badchscale; end
-% record some dv stats which are useful for bias-adaptation
-tstf = res.opt.tstf; % N.B. this *MUST* be calibrated to be useful
-clsfr.dvstats.N   = sum(res.Y~=0,1);
-clsfr.dvstats.mu  = mean(tstf,1);
-clsfr.dvstats.std = std(tstf,1);
+% clsfr.filt        = []; % DUMMY -- so ERP and ERSP classifier have same structure fields
+% clsfr.outsz       = []; % DUMMY -- so ERP and ERSP classifier have same structure fields
+% clsfr.timeIdx     = timeIdx; % time range to apply the classifer to
+% 
+% clsfr.windowFn    = winFn;% temporal window prior to fft
+% clsfr.welchAveType= opts.aveType;% other options to pass to the welchpsd
+% clsfr.freqIdx     = fIdx; % start/end index of frequencies to keep
+% clsfr.featFilt    = featFilt; % feature normalization type
+% clsfr.ffState     = ffState;  % state of the feature filter
+% 
+% clsfr.badtrthresh = []; if ( ~isempty(trthresh) && opts.badtrscale>0 ) clsfr.badtrthresh = trthresh(end)*opts.badtrscale; end
+% clsfr.badchthresh = []; if ( ~isempty(chthresh) && opts.badchscale>0) clsfr.badchthresh = chthresh(end)*opts.badchscale; end
+% % record some dv stats which are useful for bias-adaptation
+% tstf = res.opt.tstf; % N.B. this *MUST* be calibrated to be useful
+% clsfr.dvstats.N   = sum(res.Y~=0,1);
+% clsfr.dvstats.mu  = mean(tstf,1);
+% clsfr.dvstats.std = std(tstf,1);
 %  bins=[-inf -200:5:200 inf]; clf;plot([bins(1)-1 bins(2:end-1) bins(end)+1],[histc(tstf(Y>0),bins) histc(tstf(Y<=0),bins)]); 
 
-if ( opts.visualize >= 1 ) 
-  summary='';
-  if ( clsfr.binsp ) % print individual classifier outputs with info about what problem it is
-     for spi=1:size(res.opt.tstbin,2);
-        summary = [summary sprintf('%-40s=\t\t%4.1f\n',clsfr.spDesc{spi},res.opt.tstbin(:,spi)*100)];
-     end
-     summary=[summary sprintf('---------------\n')];
-  end
-  summary=[summary sprintf('\n%40s = %4.1f','<ave>',mean(res.opt.tstbin,2)*100)];
-  b=msgbox({sprintf('Classifier performance :\n %s',summary) 'OK to continue!'},'Results');
-  if ( opts.visualize > 1 )
-     for i=0:.2:120; if ( ~ishandle(b) ) break; end; drawnow; pause(.2); end; % wait to close auc figure
-     if ( ishandle(b) ) close(b); end;
-   end
-   drawnow;
-end
-
-return;
+% if ( opts.visualize >= 1 ) 
+%   summary='';
+%   if ( clsfr.binsp ) % print individual classifier outputs with info about what problem it is
+%      for spi=1:size(res.opt.tstbin,2);
+%         summary = [summary sprintf('%-40s=\t\t%4.1f\n',clsfr.spDesc{spi},res.opt.tstbin(:,spi)*100)];
+%      end
+%      summary=[summary sprintf('---------------\n')];
+%   end
+%   summary=[summary sprintf('\n%40s = %4.1f','<ave>',mean(res.opt.tstbin,2)*100)];
+%   b=msgbox({sprintf('Classifier performance :\n %s',summary) 'OK to continue!'},'Results');
+%   if ( opts.visualize > 1 )
+%      for i=0:.2:120; if ( ~ishandle(b) ) break; end; drawnow; pause(.2); end; % wait to close auc figure
+%      if ( ishandle(b) ) close(b); end;
+%    end
+%    drawnow;
+% end
+% 
+% return;
 
 %---------------------------------
 function xy=xyz2xy(xyz)

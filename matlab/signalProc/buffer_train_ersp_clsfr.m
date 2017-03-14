@@ -11,7 +11,7 @@ function [clsfr,res,X,Y]=buffer_train_ersp_clsfr(X,Y,hdr,varargin);
 %       {[float ch x time] epoch x 1} cell array of data
 %  Y -- [epoch x 1] set of labels for the data epochs
 %       OR
-%       [struct epoch x 1] set of buf event structurs which contain epoch labels in value field
+%       [struct epoch x 1] set of buf event structures which contain epoch labels in value field
 %  hdr-- [struct] buffer header structure
 % Options:
 %  capFile -- [str] name of file which contains the electrode position info  ('1010')
@@ -95,54 +95,9 @@ else % fall back on showing all data
   ch_names=di.vals; ch_pos  =[]; iseeg(:)=true;
 end
 
-si = size(X);
-%data = zeros(si(3), 1200);
-%output = zeros(si(3), 1);
-
-%for i=1:si(3)
-%    data(i, :) = reshape(X(i).buf, [1, 1200]);
-%    output(i) = Y(i).value;
-%end
-
-data = reshape(X, [si(1)*si(2), si(3)]);
-trans_data = transpose(data);
-% m = mean(trans_data);
-% ma = max(trans_data);
-% mi = min(trans_data);
-% m_arr = zeros(si(3), si(1)*si(2));
-% ma_arr = zeros(si(3), si(1)*si(2));
-% mi_arr = zeros(si(3), si(1)*si(2));
-% 
-% for i=1:si(3)
-%     m_arr(i, :) = m;
-%     ma_arr(i, :) = ma;
-%     mi_arr(i, :) = mi;
-% end
-
-% size_Y = size(Y);
-% total_samples = size_Y(0) - 1;
-% Y = Y(1: (size_Y(1)-1), :);
-% new_Y = [];
-% for i = 1:(size_Y(1) - 1)
-%     temp = char(Y(i));
-%     new_Y(i) = str2num(temp(1));
-% end
-% 
-% new_Y = new_Y';
-
-% X_norm = (trans_data - m_arr)./ (ma_arr - mi_arr);
-save('data_X', 'trans_data');
-save('data_Y', 'Y');
-%run ../classifiers/GP.m;
-clsfr = GP();
-clsfr = clsfr.train(trans_data, Y);
-% clsfr.train_x = trans_data;
-% clsfr.train_y = new_Y;
-
 % call the actual function which does the classifier training
-% clsfr=fitrgp(X_norm,Y);
-
-% return;
+[clsfr,X,Y]=train_ersp_clsfr(X,Y,'ch_names',ch_names,'ch_pos',ch_pos,'fs',fs,'badCh',~iseeg,varargin{:});
+return;
 
 %---------------------
 function testCase()
@@ -156,18 +111,17 @@ for ei=1:numel(testdata); % bodge in and additional noise source
    testdata(ei).buf = testdata(ei).buf + randn(size(testdata(ei).buf))*5e-1; 
 end;
 
-[ans,of] = buffer_apply_ersp_clsfr(traindata,oclsfr); % get raw f out for comp
-c=oclsfr; c.adaptspatialfilt=1; [ans,nf] = buffer_apply_ersp_clsfr(testdata,c); %non-adaptive clsfr
+of = buffer_apply_ersp_clsfr(traindata,oclsfr);
+c=oclsfr; c.adaptspatialfilt=1; nf = buffer_apply_ersp_clsfr(testdata,c); %non-adaptive clsfr
 
 clsfr=oclsfr;clsfr.adaptspatialfilt=exp(log(.5)/30);
 f=[];p=[];
 for ei=1:numel(testdata);
    textprogressbar(ei,numel(testdata));
-   [ans,f(ei,:),p(ei,:),ans,clsfr]=buffer_apply_ersp_clsfr(testdata(ei),clsfr);
+   [f(ei,:),ans,p(ei,:),ans,clsfr]=buffer_apply_ersp_clsfr(testdata(ei),clsfr);
 end
 fprintf('\n');
 
 % compare the results
 clf;image3d(cat(3,of,nf,f),2,'disptype','plot','Zvals',{'of' 'nf' 'af'})
 mad(of,f)
-

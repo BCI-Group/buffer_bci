@@ -75,8 +75,8 @@ classdef GP
                 
                 [coefs, scores, variances] = princomp(X, 'econ');
                 pervar = 100*cumsum(variances) / sum(variances);
-%                 d = max(find(pervar < 95));
-                d = 6;
+%                 d = max(find(pervar < 90));
+                d = 4;
                 X = X(:, 1:d);
                 
                 mean_train = mean(X);
@@ -118,9 +118,9 @@ classdef GP
         end;
 
         function [mu_, s_] = predict_(obj, x, clsfr_no)
-            K_ = obj.rbf(obj.train_x, obj.train_x);
-            K_x = obj.rbf(obj.train_x, x);
-            K_xx = obj.rbf(x, x);
+            K_ = obj.linear(obj.train_x, obj.train_x);
+            K_x = obj.linear(obj.train_x, x);
+            K_xx = obj.linear(x, x);
             
             m_inv = inv(K_);
             mu_ = K_x' * m_inv * obj.train_y(:, clsfr_no);
