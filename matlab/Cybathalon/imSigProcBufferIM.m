@@ -89,7 +89,7 @@ if ( ~iscell(opts.trainOpts))opts.trainOpts={opts.trainOpts}; end;
 capFile=opts.capFile;
 if( isempty(capFile) ) 
   [fn,pth]=uigetfile(fullfile(mdir,'..','../resources/caps/*.txt'),'Pick cap-file'); 
-  if ( isequal(fn,0) || isequal(pth,0) ) capFile='1010.txt'; 
+  if ( isequal(fn,0) || isequal(pth,0) ) capFile='cap_tmsi_mobita_im.txt'; 
   else                                   capFile=fullfile(pth,fn);
   end; % 1010 default if not selected
 end

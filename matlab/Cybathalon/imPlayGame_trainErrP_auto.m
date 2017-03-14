@@ -92,9 +92,10 @@ sendEvent('stimulus.testing','start');
 state=[]; 
 endTesting=false; dvs=[];
 prevStage=[];
+prevAction = [];
 endCont = 0;
 stageCont = 0;
-
+toDelete = 0;
 startStage = true;
 
 for si=1:max(100000,nSeq);
@@ -168,12 +169,13 @@ for si=1:max(100000,nSeq);
         endCont = endCont + 1;
     else
         endCont = 0;
+        toDelete = 0;
     end
     prevStage = actStage;
     
     random = rand(1);
     predTgt = actStage;
-    if random > 0.75
+    if random > 0.70
         predTgt = round(rand(1)*4);
     end
     if predTgt == 0
@@ -188,26 +190,41 @@ for si=1:max(100000,nSeq);
     end
     end
     
-	 try;
+	try;
 		cybathalon.socket.send(javaObject('java.net.DatagramPacket',uint8([10*cybathalon.player+cybathalon.cmddict(predTgt) 0]),1));
-    if predTgt == 4
-        sendEvent('stimulus_errp.target',0==actStage);
-    end
+    %if predTgt == 4
+    %    sendEvent('stimulus_errp.target',0==actStage);
+    %end
     if predTgt == 3
-        sendEvent('stimulus_errp.target',1==actStage);
+        % If we repeat an action in the same platform in a stage different
+        % than 0 then we do not account for that because the game does not
+        % show any state transition
+        if isempty(prevAction) || prevAction~=predTgt || endcont == 0 || actStage==0
+            sendEvent('stimulus_errp.target',1==actStage);
+            toDelete = toDelete + 1;
+        end
     end
     if predTgt == 1
-            sendEvent('stimulus_errp.target',2==actStage);
+        if isempty(prevAction) || prevAction~=predTgt || endcont == 0 || actStage==0
+        sendEvent('stimulus_errp.target',2==actStage);
+        toDelete = toDelete + 1;
+        end
     end
     if predTgt == 2
+                if isempty(prevAction) || prevAction~=predTgt || endcont == 0 || actStage==0
+
         sendEvent('stimulus_errp.target',3==actStage);
+        toDelete = toDelete + 1;
+                end
     end
      catch;
 		if ( connectionWarned<10 )
 		  connectionWarned=connectionWarned+1;
 		  warning('Error sending to the Cybathalon game.  Is it running?\n');
 		end
-     end
+    end
+     
+    prevAction = predTgt;
      
 		% now wait a little to give some RTB time
 	 drawnow;
@@ -216,10 +233,10 @@ for si=1:max(100000,nSeq);
 	 set(h(end),'facecolor',bgColor); % clear the feedback
 
     if endCont>=wait_end
-        sendEvent('stimulus_errp.target', -1);
+        sendEvent('stimulus_errp.target', - toDelete-1);    % This extra -1 is to delete this event too
         stageCont = stageCont + 1;
         endCont = 0;
-        if stageCont >= 3
+        if stageCont >= 2
             endTesting = true;
             pause(2)    % So the signal processor can finish anything it is doing
         else
@@ -230,7 +247,7 @@ for si=1:max(100000,nSeq);
             %    stage = [stage, tmp(randperm(3))];
             %end
             tmp = [1 2 3];
-            for i=1:4
+            for i=1:2
                 stage = [stage, [0], tmp(randperm(3))];
             end
             % Save previous stage to history
@@ -254,7 +271,8 @@ for si=1:max(100000,nSeq);
             waitforbuttonpress;
             set(txthdl,'string', '', 'visible', 'on'); drawnow;
             
-            startStage = True;
+            startStage = true;
+            toDelete = 0;
         end
     end
    

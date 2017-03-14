@@ -86,7 +86,7 @@ thresh=[.5 3];  badchThresh=.5;   overridechnms=0;
 capFile=opts.capFile;
 if( isempty(capFile) )
     [fn,pth]=uigetfile(fullfile(mdir,'..','../resources/caps/*.txt'),'Pick cap-file');
-    if ( isequal(fn,0) || isequal(pth,0) ) capFile='1010.txt';
+    if ( isequal(fn,0) || isequal(pth,0) ) capFile='cap_tmsi_mobita_ErrP.txt';
     else                                   capFile=fullfile(pth,fn);
     end; % 1010 default if not selected
 end
@@ -173,16 +173,23 @@ while ( true )
             traindata = traindata(eventsorder);
             
             % remove useless data
-            mi=matchEvents(traindevents,opts.epochEventType,-1);
-            cont = 0;
-            for i=1:length(mi)
-                if mi(i) == 1
-                    index = i;
-                    range = (index-opts.wait_end:index)-(cont*(opts.wait_end+1));   % Delete last opts.wait_end events after an event that indicates end of stage.
+            elementsDeleted = 0;
+            i = 1;
+            while true
+                index = i - elementsDeleted;
+                if index==length(traindevents)
+                    break
+                end
+                type = traindevents(index).type;
+                value = traindevents(index).value;
+                if strcmp(type, opts.epochEventType) && value < 0
+                    value = -value - 1; % We added -1 before to recognize these events
+                    range = ((index-value):index);   % Delete last opts.wait_end events after an event that indicates end of stage.
+                    elementsDeleted = elementsDeleted + (value + 1);
                     traindevents(range)=[];
                     traindata(range)=[];
-                    cont = cont +1;
                 end
+                i = i + 1;
             end
              
             %remove exit event

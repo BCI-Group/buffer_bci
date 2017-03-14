@@ -97,7 +97,7 @@ calibrateOpts_im ={'offset_ms',offset_ms_im};
 % % ErrP Calibration/data-recording options
 trlen_ms_ErrP      = 1000; % how much time we collect data for the analysis of 
 wait_end = 5;   % Number of event to wait at the end of the stage to be sure the stage is finished.
-calibrateOpts_errp ={};
+calibrateOpts_errp ={'fs',100};
 cybathalon_path = [pwd '\..\..\..\BrainRunners\CybathlonBrainRunnersTraining1.225\Win64\'];
 
 
