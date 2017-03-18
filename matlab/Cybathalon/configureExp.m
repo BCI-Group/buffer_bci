@@ -55,12 +55,18 @@ buffport     =1972; % Port to connect to the EEG buffer
 gamePortInst = 5555; % Port to send an instruction to the game
 gamePortStage     =6666; % Port for receiving game state (just valid during ErrP training).
 
-% Imaginary movement training parameters
+% Imaginary movement calibration parameters
 nSymbs       =3; % E,N,W,S for 4 outputs, N,W,E  for 3 outputs
 symbCue      ={'Feet' 'Left-Hand' 'Right-Hand'};
 baselineClass='99 Rest'; % if set, treat baseline phase as a separate class to classify
 nSeq         =15*nSymbs; % 15 examples of each target
 nSeq_Prac    =2*nSymbs; % Number of item to practice with in the Practice phase
+
+% Error related signals calibration parameters
+numStages = 3; % Number of stages to complete when calibrating the ErrP signal
+sizeStage = 4; % How big the stages for the ErrP calibration phase will be.
+               % Each unit on the sizeStage parameter correspond to one
+               % random combination of the 4 possible stages.
 
 %%%%%%%%%%%%%%%%
 epochDuration     =1.5;
