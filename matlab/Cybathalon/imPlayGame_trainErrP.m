@@ -10,7 +10,7 @@
 % Provides a graphical interface similar to the one used for the
 % calibration phase.
 % 
-% Author: Alejandro González Rogel (s4805550)
+% Author: Alejandro Gonzï¿½lez Rogel (s4805550)
 %         Marzieh Borhanazad (s4542096)
 %         Ankur Ankan (s4753828)
 % Forked from https://github.com/jadref/buffer_bci
@@ -243,7 +243,7 @@ for si=1:max(100000,nSeq);
             fclose(fid2);
             
             % Write to file
-            fileID = fopen(fullfile([pwd '\..\..\..\BrainRunners\CybathlonBrainRunnersTraining1.225\Win64\'],'level.csv'),'w');
+            fileID = fopen(fullfile(cybathalon_path, 'level.csv'),'w');
             for i=1:length(stage)-1
                 fprintf(fileID,'%o;',stage(i));
             end
