@@ -219,7 +219,7 @@ for si=1:max(100000,nSeq);
         sendEvent('stimulus_errp.target', - toDelete-1);    % This extra -1 is to delete this event too
         stageCont = stageCont + 1;
         endCont = 0;
-        if stageCont >= 2
+        if stageCont >= numStages
             endTesting = true;
             pause(2)    % So the signal processor can finish anything it is doing
         else
@@ -230,7 +230,7 @@ for si=1:max(100000,nSeq);
             %    stage = [stage, tmp(randperm(3))];
             %end
             tmp = [1 2 3];
-            for i=1:3
+            for i=1:sizeStage
                 stage = [stage, [0], tmp(randperm(3))];
             end
             % Save previous stage to history
