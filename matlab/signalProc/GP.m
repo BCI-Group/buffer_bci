@@ -37,13 +37,14 @@ classdef GP
         end;
             
         function y = postprocess_y(y)
-            n = size(y);
-            n = n(1);
-            for i=1:n
-                arr = y(i, :);
-                arr(arr==max(arr)) = 1;
-                arr(arr~=max(arr)) = 0;
-                y(i, :) = arr;
+            n = size(y, 1);
+            for j=1:2
+                for i=1:n
+                    arr = y(i, :);
+                    arr(arr==max(arr)) = 1;
+                    arr(arr~=max(arr)) = 0;
+                    y(i, :) = arr;
+                end;
             end;
         end;
 
@@ -140,6 +141,12 @@ classdef GP
             y = obj.postprocess_y(y);
         end;
 
+        function update(obj, x, y)
+            n = size(obj.train_x, 1);
+            obj.train_x(n+1, :) = x;
+            obj.train_y(n+1, :) = y;
+        end
+        
         function s = saveobj(obj)
             s.train_x = obj.train_x;
             s.train_y = obj.train_y;
