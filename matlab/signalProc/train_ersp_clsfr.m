@@ -361,30 +361,30 @@ end
 
 
 %7) combine all the info needed to apply this pipeline to testing data
-% clsfr.type        = 'ERsP';
-% clsfr.fs          = fs;   % sample rate of training data
-% clsfr.detrend     = opts.detrend; % detrend?
-% clsfr.isbad       = isbadch;% bad channels to be removed
-% clsfr.spatialfilt = R;    % spatial filter used for surface laplacian
-% if ( any(strcmp(opts.spatialfilter,{'trwht','adaptspatialfilter'})) ) % configure for apaptive use later
-%   clsfr.spatialfilt=[];
-%   clsfr.adaptspatialfilt=opts.adaptspatialfilt; % no adaption
-%   clsfr.chCov      =Sigma;
-% end
+clsfr.type        = 'ERsP';
+clsfr.fs          = fs;   % sample rate of training data
+clsfr.detrend     = opts.detrend; % detrend?
+clsfr.isbad       = isbadch;% bad channels to be removed
+clsfr.spatialfilt = R;    % spatial filter used for surface laplacian
+if ( any(strcmp(opts.spatialfilter,{'trwht','adaptspatialfilter'})) ) % configure for apaptive use later
+  clsfr.spatialfilt=[];
+  clsfr.adaptspatialfilt=opts.adaptspatialfilt; % no adaption
+  clsfr.chCov      =Sigma;
+end
 
-% clsfr.filt        = []; % DUMMY -- so ERP and ERSP classifier have same structure fields
-% clsfr.outsz       = []; % DUMMY -- so ERP and ERSP classifier have same structure fields
-% clsfr.timeIdx     = timeIdx; % time range to apply the classifer to
-% 
-% clsfr.windowFn    = winFn;% temporal window prior to fft
-% clsfr.welchAveType= opts.aveType;% other options to pass to the welchpsd
-% clsfr.freqIdx     = fIdx; % start/end index of frequencies to keep
-% clsfr.featFilt    = featFilt; % feature normalization type
-% clsfr.ffState     = ffState;  % state of the feature filter
-% 
-% clsfr.badtrthresh = []; if ( ~isempty(trthresh) && opts.badtrscale>0 ) clsfr.badtrthresh = trthresh(end)*opts.badtrscale; end
-% clsfr.badchthresh = []; if ( ~isempty(chthresh) && opts.badchscale>0) clsfr.badchthresh = chthresh(end)*opts.badchscale; end
-% % record some dv stats which are useful for bias-adaptation
+clsfr.filt        = []; % DUMMY -- so ERP and ERSP classifier have same structure fields
+clsfr.outsz       = []; % DUMMY -- so ERP and ERSP classifier have same structure fields
+clsfr.timeIdx     = timeIdx; % time range to apply the classifer to
+
+clsfr.windowFn    = winFn;% temporal window prior to fft
+clsfr.welchAveType= opts.aveType;% other options to pass to the welchpsd
+clsfr.freqIdx     = fIdx; % start/end index of frequencies to keep
+clsfr.featFilt    = featFilt; % feature normalization type
+clsfr.ffState     = ffState;  % state of the feature filter
+
+clsfr.badtrthresh = []; if ( ~isempty(trthresh) && opts.badtrscale>0 ) clsfr.badtrthresh = trthresh(end)*opts.badtrscale; end
+clsfr.badchthresh = []; if ( ~isempty(chthresh) && opts.badchscale>0) clsfr.badchthresh = chthresh(end)*opts.badchscale; end
+% record some dv stats which are useful for bias-adaptation
 % tstf = res.opt.tstf; % N.B. this *MUST* be calibrated to be useful
 % clsfr.dvstats.N   = sum(res.Y~=0,1);
 % clsfr.dvstats.mu  = mean(tstf,1);

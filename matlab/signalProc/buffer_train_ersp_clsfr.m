@@ -1,4 +1,4 @@
-function [clsfr,res,X,Y]=buffer_train_ersp_clsfr(X,Y,hdr,varargin);
+function [clsfr,X,Y]=buffer_train_ersp_clsfr(X,Y,hdr,varargin);
 % train ERSP (frequency-domain) classifier with ft-buffer based data/events input
 %
 %   [clsfr,res,X,Y]=buffer_train_ersp_clsfr(X,Y,hdr,varargin);

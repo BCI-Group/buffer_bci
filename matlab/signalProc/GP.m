@@ -104,7 +104,7 @@ classdef GP
     end;
 
     methods
-        function obj = train(obj, X, y)
+        function classifier = train(obj, X, y)
             [X, indexes, coefs, d, mean_train, std_train] = obj.preprocess_x(X, false);
             y = obj.preprocess_y(y);
             
@@ -115,6 +115,8 @@ classdef GP
             obj.d = d;
             obj.mean_train = mean_train;
             obj.std_train = std_train;
+            
+            classifier = struct('train_x', X, 'train_y', y, 'indexes', indexes, 'coefs', coefs, 'd', d, 'mean_train', mean_train, 'std_train', std_train);
         end;
 
         function [mu_, s_] = predict_(obj, x, clsfr_no)

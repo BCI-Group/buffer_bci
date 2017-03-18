@@ -8,7 +8,7 @@
 % Provides a graphical interface similar to the one used for the
 % calibration phase.
 % 
-% Author: Alejandro González Rogel (s4805550)
+% Author: Alejandro Gonzï¿½lez Rogel (s4805550)
 %         Marzieh Borhanazad (s4542096)
 %         Ankur Ankan (s4753828)
 % Forked from https://github.com/jadref/buffer_bci

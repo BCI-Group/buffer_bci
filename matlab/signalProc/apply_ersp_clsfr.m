@@ -126,15 +126,15 @@ end
 if ( size(X,2)>numel(clsfr.windowFn) )
   X=welchpsd(X,2,'windowType',clsfr.windowFn(:),'aveType',clsfr.welchAveType,'detrend',1);
 else
-  %3.1) temporal window
+%   3.1) temporal window
   X=repop(X,'*',clsfr.windowFn(:)');
-  %3.2) fft
+%   3.2) fft
   X=fft(X,[],2);
-  %3.2.5 positive frequencies only
+%   3.2.5 positive frequencies only
   X=X(:,1:ceil((size(X,2)-1)/2)+1,:);
-  %3.3) convert to powers
+%   3.3) convert to powers
   X=2*(real(X).^2 + imag(X).^2); 
-  %3.4) convert to output type
+%   3.4) convert to output type
   switch ( lower(clsfr.welchAveType) )
    case 'db';
     X=10*log10(X)./sum(clsfr.windowFn); % map to db (and normalise)
@@ -158,7 +158,18 @@ if ( isfield(clsfr,'featFilt') && ~isempty(clsfr.featFilt) )
 end
 
 %6) apply classifier
-[f, fraw]=applyLinearClassifier(X,clsfr);
+% [f, fraw]=applyLinearClassifier(X,clsfr);
+gp = GP;
+gp.train_x = clsfr.train_x;
+gp.train_y = clsfr.train_y;
+gp.indexes = clsfr.indexes;
+gp.coefs = clsfr.coefs;
+gp.d = clsfr.d;
+gp.mean_train = clsfr.mean_train;
+gp.std_train = clsfr.std_train;
+f = gp.predict(reshape(X, [1, size(X, 1) * size(X, 2)]));
+fraw = [[]];
+clsfr.binsp = 4;
 
 %6.5) correct classifier output for bad trials..
 if ( any(isbadtr) )
