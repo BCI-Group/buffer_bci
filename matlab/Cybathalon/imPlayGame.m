@@ -170,8 +170,7 @@ for si=1:max(100000,nSeq);
      else
 %          data = buffer_newevents(buffhost, buffport, state, 'update.data');
          dv = devents(end).value;
-         [m, dv] = max(dv);
-         if dv==2   % If we did not fail
+         if dv>0   % If we did not fail
                 sendEvent('update', prediction_im');
          end;
      end;
