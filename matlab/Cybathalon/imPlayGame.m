@@ -102,7 +102,7 @@ for si=1:max(100000,nSeq);
 				state.nSamples,state.nEvents);
   end;
 
-    sleepSec(epochFeedbackTrialDuration); 
+%     sleepSec(epochFeedbackTrialDuration); 
  % wait for classifier prediction event
  [devents,state,nevents,nsamples]=buffer_newevents(buffhost,buffport,state,'classifier_im.prediction',[],2000);
  
@@ -155,7 +155,7 @@ for si=1:max(100000,nSeq);
 	% send the command to the game server
 	 try;
 		cybathalon.socket.send(javaObject('java.net.DatagramPacket',uint8([10*cybathalon.player+cybathalon.cmddict(predTgt) 0]),1));
-	    sendEvent('stimulus_errp.predict','start');
+        sendEvent('stimulus_errp.predict','start');
      catch;
 		if ( connectionWarned<10 )
 		  connectionWarned=connectionWarned+1;
@@ -177,7 +177,7 @@ for si=1:max(100000,nSeq);
 
 	 % now wait a little to give some RTB time
 	 drawnow;
-	 sleepSec(rtbDuration);
+% 	 sleepSec(rtbDuration);
 	 set(h(predTgt),'facecolor',cybathalon.cmdColors(:,predTgt));
 	 set(h(end),'facecolor',bgColor); % clear the feedback
 	 
