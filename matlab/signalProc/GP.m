@@ -53,11 +53,11 @@ classdef GP
             n = n(1);
             new_y = zeros(n, 4);
             for i=1:n
-                if strcmp(y(i, 1), '2 Left-Hand ')
+                if strcmp(y(i, 1), '1 Feet ')
                     new_y(i, 1) = 1;
-                elseif strcmp(y(i, 1), '3 Right-Hand ')
+                elseif strcmp(y(i, 1), '2 Left-Hand ')
                     new_y(i, 2) = 1;
-                elseif strcmp(y(i, 1), '1 Feet ')
+                elseif strcmp(y(i, 1), '3 Right-Hand ')
                     new_y(i, 3) = 1;
                 else
                     new_y(i, 4) = 1;
