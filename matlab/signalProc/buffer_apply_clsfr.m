@@ -1,4 +1,4 @@
-function [f,fraw,p,Xpp]=buffer_apply_clsfr(X,clsfr,verb)
+function [f,fraw,p,Xpp, X_]=buffer_apply_clsfr(X,clsfr,verb)
 % apply a previously trained classifier to the input data
 % 
 %  f=buffer_apply_clsfr(X,clsfr,verb,varargin)
@@ -18,6 +18,8 @@ function [f,fraw,p,Xpp]=buffer_apply_clsfr(X,clsfr,verb)
 %  fraw - [size(X,dim) x nSp] set of pre-binary sub-problem decision values
 %  p     - [size(X,epoch) x nCls] the classifier's assessment of the probablility of each class
 %  X     - [n-d] the pre-processed data
+
+X_ = X;
 if( nargin<3 || isempty(verb))  verb=0; end;
 % extract the data - from field begining with trainingData
 if ( iscell(X) ) 

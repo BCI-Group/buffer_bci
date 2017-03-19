@@ -131,8 +131,7 @@ classdef GP
         end
         
         function y = predict(obj, X)
-            n = size(X);
-            n = n(1);
+            n = size(X, 1);
             X = obj.preprocess_x(X, obj.indexes, obj.coefs, obj.d, obj.mean_train, obj.std_train);
             y = zeros(n, 4);
             for i=1:4

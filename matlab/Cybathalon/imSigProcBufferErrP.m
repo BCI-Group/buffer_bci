@@ -56,7 +56,7 @@ function []=imSigProcBufferErrP(varargin)
 %                      epoch output classifier.
 %
 %
-% Author: Alejandro González Rogel (s4805550)
+% Author: Alejandro Gonzï¿½lez Rogel (s4805550)
 %         Marzieh Borhanazad (s4542096)
 %         Ankur Ankan (s4753828)
 % Forked from https://github.com/jadref/buffer_bci
@@ -266,7 +266,7 @@ while ( true )
                     if ( ~(exist([clsfrfile '.mat'],'file') || exist(clsfrfile,'file')) )
                         		  warning(['We could not find a classifier with the name: ' clsfrfile ...
               '. Please, choose the desired classifier']);
-            [fn,pth]=uigetfile('.','Pick imaginary movement classifier'); 
+            [fn,pth]=uigetfile('.','Pick Error Related signal classifier'); 
             if ( isequal(fn,0) || isequal(pth,0) )
                 error('No classifier selected.')
                 break;
@@ -280,8 +280,7 @@ while ( true )
                     clsSubj = subject;
                 end;
                 
-                event_applyClsfr(clsfr,'startSet',{'stimulus_errp.predict'},...
-                    'predFilt','car',...
+                event_applyClsfrErrp(clsfr,'startSet',{'stimulus_errp.predict'},...
                     'predEventType','classifier_errp.prediction',... 
                     'endType',{'testing','test','epochfeedback','eventfeedback'},...
                     'verb',opts.verb,...

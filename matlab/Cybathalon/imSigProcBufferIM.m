@@ -62,7 +62,7 @@ function []=imSigProcBufferIM(varargin)
 %                      epoch output classifier.
 %
 %
-% Author: Alejandro González Rogel (s4805550)
+% Author: Alejandro Gonzï¿½lez Rogel (s4805550)
 %         Marzieh Borhanazad (s4542096)
 %         Ankur Ankan (s4753828)
 % Forked from https://github.com/jadref/buffer_bci
@@ -235,14 +235,15 @@ while ( true )
       clsSubj = subject;
     end;
     
-    event_applyClsfr(clsfr,'startSet',opts.testepochEventType,...
+    event_applyClsfrIM(clsfr,'startSet',opts.testepochEventType,...
 							'predFilt',opts.epochPredFilt,...
 							'endType',{'stimulus.testing','testing','test','epochfeedback','eventfeedback'},...
                             'endValue',{'end'},...
                             'predEventType','classifier_im.prediction',...
                             'verb',opts.verb,...
 							'trlen_ms',opts.trlen_ms,...
-							opts.epochFeedbackOpts{:}); % allow override with epochFeedbackOpts
+							opts.epochFeedbackOpts{:}); % allow override with 
+    
 	 catch
       fprintf('Error in : %s',phaseToRun);
       le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',le.identifier,le.message);

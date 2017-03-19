@@ -120,6 +120,7 @@ for si=1:max(100000,nSeq);
 	 end
 	 fprintf(1,'Prediction after %gs : %s',trlEndTime-trlStartTime,ev2str(devents(end)));
     dv = devents(end).value;
+    prediction_im = dv;
     if ( numel(dv)==1 )
       if ( dv>0 && dv<=nSymbs && isinteger(dv) ) % dvicted symbol, convert to dv equivalent
         tmp=dv; dv=zeros(nSymbs,1); dv(tmp)=1;
@@ -162,30 +163,18 @@ for si=1:max(100000,nSeq);
 		end
      end
      
-     [devents,state,nevents,nsamples]=buffer_newevents(buffhost,buffport,state,'classifier_errp.prediction',[],1000);
+     [devents,state,nevents,nsamples]=buffer_newevents(buffhost,buffport,state,'classifier_errp.prediction',[],1500);
      if( isempty(devents) ) % extract the decision value
          % TODO Check this error message
          fprintf(1,'Error! no ErrP predictions after %gs, continuing (%d samp, %d evt)\n',trlEndTime-trlStartTime,state.nSamples,state.nEvents);
      else
+%          data = buffer_newevents(buffhost, buffport, state, 'update.data');
          dv = devents(end).value;
-             if failedLastTime==0   % If we did not fail last time.
-                 if dv==0    % If we predict that we failed.
-                    failedLastTime=1;
-                    lastErrPPrediction = dv;
-                    lastMove = predTgt;
-                 else       % If we think we succeded with our prediction.
-%TODO UPDATE CLASSIFIER HERE
-                 end
-             else   %If we failed in our last prediction.
-                 if dv==0    % If we predict that we failed.
-%TODO UPDATE CLASSIFIER HERE
-                 else       % If we think we succeded with our prediction.
-                    failedLastTime=1;
-                    lastErrPPrediction = dv;
-                    lastMove = predTgt;
-                 end
-             end
-     end
+         [m, dv] = max(dv);
+         if dv==2   % If we did not fail
+                sendEvent('update', prediction_im');
+         end;
+     end;
 
 	 % now wait a little to give some RTB time
 	 drawnow;
