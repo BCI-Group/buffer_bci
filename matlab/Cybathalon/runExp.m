@@ -7,11 +7,9 @@
 %         Ankur Ankan (s4753828)
 % Forked from https://github.com/jadref/buffer_bci
 %----------------------------------------------------------------------
+% Load all variables
 configureExp;
 % create the control window and execute the phase selection loop
-%try
-%  contFig=controller(); info=guidata(contFig);
-%catch
 contFig=figure(1);
 set(contFig,'name','BCI Controller: Selection screen','color',winColor);
 axes('position',[0 0 1 1],'visible','off','xlim',[0 1],'ylim',[0 1],'nextplot','add');
@@ -42,6 +40,7 @@ drawnow; % make sure the figure is visible
 subject='test';
 
 sendEvent('experiment.im','start');
+% Main loop
 while (ishandle(contFig))
     set(contFig,'visible','on');
     if ( ~ishandle(contFig) ) break; end;
@@ -59,7 +58,7 @@ while (ishandle(contFig))
         if ( ~ishandle(contFig) ) break; end;
     end
     
-    % process any key-presses
+    % Process any key-presses
     modekey=get(contFig,'userdata');
     if ( ~isempty(modekey) )
         fprintf('key=%s\n',modekey);
@@ -67,7 +66,7 @@ while (ishandle(contFig))
         if ( ischar(modekey(1)) )
             ri = strmatch(modekey(1),menustr(:,1)); % get the row in the instructions
             if ( ~isempty(ri) )
-                phaseToRun = menustr{ri,2};
+                phaseToRun = menustr{ri,2};     % Map key to phase to run
             elseif ( any(strcmp(modekey(1),{'q','Q'})) )
                 break;
             end
@@ -79,6 +78,7 @@ while (ishandle(contFig))
     
     fprintf('Start phase : %s\n',phaseToRun);
     set(contFig,'visible','off');drawnow;
+    % Check which phase to run
     switch phaseToRun;
         
         %------------------------------------------------------------------
@@ -140,22 +140,22 @@ while (ishandle(contFig))
         case 'eegviewer_errp';
             sendEvent('subject',subject);
             sendEvent(phaseToRun,'start');
-            sendEvent('startPhase.cmd',phaseToRun); % tell sig-proc what to do
+            sendEvent('startPhase.cmd',phaseToRun);
             % wait until capFitting is done
-            while (true) % N.B. use a loop as safer and matlab still responds on windows...
+            while (true)
                 [devents]=buffer_newevents(buffhost,buffport,[],...
                     phaseToRun,'end',1000); % wait until finished
                 drawnow;
                 if ( ~isempty(devents) ) break; end;
             end
-
+            
             %--------------------------------------------------------------
         case {'calibrate_errp'};
             sendEvent('subject',subject);
             sendEvent(phaseToRun,'start');
             sendEvent('startPhase.cmd',phaseToRun); % Run the SigProc for the ErrP calibration
             pause(1)  % If the events are produced at the same time
-            % SigProcBufferIM won't recognice the second one
+                      % SigProcBufferIM won't recognice the second one
             sendEvent('startPhase.cmd','classify_im'); % Run the SigProc for the IM classifier
             try
                 % run the main cybathalon control
@@ -171,7 +171,7 @@ while (ishandle(contFig))
         case {'train_errp'};
             sendEvent('subject',subject);
             sendEvent(phaseToRun,'start');
-            sendEvent('startPhase.cmd',phaseToRun); % tell sig-proc what to do
+            sendEvent('startPhase.cmd',phaseToRun);
             try
                 buffer_newevents(buffhost,buffport,[],phaseToRun,'end'); % wait until finished
             catch
@@ -185,7 +185,7 @@ while (ishandle(contFig))
             sendEvent(phaseToRun,'start');
             sendEvent('startPhase.cmd','classify_errp'); % Run the SigProc for the ErrP calibration
             pause(1)  % If the events are produced at the same time
-            % SigProcBufferIM won't recognice the second one
+                      % SigProcBufferIM won't recognice the second one
             sendEvent('startPhase.cmd','classify_im'); % Run the SigProc for the IM classifier
             
             try
