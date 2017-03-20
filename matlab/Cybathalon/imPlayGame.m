@@ -187,6 +187,8 @@ for si=1:max(100000,nSeq);
 end % loop over sequences in the experiment
 % end training marker
 sendEvent('stimulus.testing','end');
+pause(0.5);
+sendEvent('stimulus.save_IM_clsfr',1);  % We save the updated classifier
 
 if ( ishandle(fig) ) % thanks message
 set(txthdl,'string',{'That ends the testing phase.','Thanks for your patience'}, 'visible', 'on', 'color',[0 1 0]);
