@@ -158,7 +158,6 @@ if ( isfield(clsfr,'featFilt') && ~isempty(clsfr.featFilt) )
 end
 
 %6) apply classifier
-% [f, fraw]=applyLinearClassifier(X,clsfr);
 gp = GP;
 gp.train_x = clsfr.train_x;
 gp.train_y = clsfr.train_y;
@@ -171,7 +170,7 @@ f = gp.predict(reshape(X, [1, size(X, 1) * size(X, 2)]));
 fraw = [[]];
 clsfr.binsp = 4;
 
-%6.5) correct classifier output for bad trials..
+%6.5) correct classifier output for bad trials..
 if ( any(isbadtr) )
   %if ( isfield(clsfr,'dvstats') )
   %  f(isbadtr) = mean(clsfr.dvstats.mu(1:2)); % mean dv?

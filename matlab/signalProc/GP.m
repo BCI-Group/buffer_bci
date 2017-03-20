@@ -1,5 +1,26 @@
+%----------------------------------------------------------------------
+% Implementation of Gaussian Process classifier
+%
+% This file is used while training or predicting for IM movements.
+%
+% Author: Alejandro Gonz�lez Rogel (s4805550)
+%         Marzieh Borhanazad (s4542096)
+%         Ankur Ankan (s4753828)
+%----------------------------------------------------------------------
+
 classdef GP
+    % Class for Gaussian Processor Classifier 
+    
     properties
+        % Properties:
+        %   train_x: The training data.
+        %   train_y: The training labels corresponding to train_x.
+        %   indexes: The indexes to be removed from the data (if any).
+        %   coefs:   coefficients of PCA.
+        %   d:       Number of dimensions to reduce the data to using PCA.
+        %   mean_train: The mean of the training data.
+        %   std_train: The standard deviation of the training data.
+        
         train_x;
         train_y;
         indexes;
@@ -11,6 +32,9 @@ classdef GP
 
     methods(Static)
         function K = rbf(x, y)
+            % Function for computing the RBF kernel given the datasets x and y.
+            % By default it assumes gamma=1.
+            % Returns a matrix of size=(size(x, 1), size(y, 1))
             n1 = size(x, 1);
             n2 = size(y, 1);
             euclidean_dist = zeros(n1, n2);
@@ -25,6 +49,9 @@ classdef GP
         end
 
         function K_linear = linear(x, y)
+            % Function for computing the linear kernel given the datasets x
+            % and y.
+            % Returns a matrix of size=(size(x, 1), size(y, 1))
             n1 = size(x, 1);
             n2 = size(y, 1);
             linear_dist = zeros(n1, n2);
@@ -37,6 +64,10 @@ classdef GP
         end;
             
         function y = postprocess_y(y)
+            % Combines the results from all the four different classifiers
+            % and returns a vector of size=4 for the prediction. One one
+            % value in the prediction is 1 (representing the predicted
+            % class), rest all are 0.
             n = size(y, 1);
             for j=1:2
                 for i=1:n
@@ -49,6 +80,8 @@ classdef GP
         end;
 
         function y = preprocess_y(y)
+            % Uses one hot encoder to convert each label in a vector of
+            % size=4.
             n = size(y);
             n = n(1);
             new_y = zeros(n, 4);
@@ -67,17 +100,17 @@ classdef GP
         end;
 
         function [X, indexes, coefs, d, mean_train, std_train] = preprocess_x(X, indexes, coefs, d, mean_train, std_train)
+            % Preprocesses the input data. The preprocessing is done in 2
+            % steps. First, the dimensionality of the data is reduced using
+            % PCA and then data is standardized.
             n = size(X);
             n = n(1);
 
             if ~indexes
-%                 indexes = any(isnan(X));
-%                 X(:, indexes) = [];
-                
                 [coefs, scores, variances] = princomp(X, 'econ');
                 pervar = 100*cumsum(variances) / sum(variances);
-%                 d = max(find(pervar < 90));
-                d = 4;
+                
+                d = 119;
                 X = X(:, 1:d);
                 
                 mean_train = mean(X);
@@ -90,6 +123,8 @@ classdef GP
         end;
 
         function acc = accuracy(predicted, true)
+            % Computes the accuracy of the classifier given the predicted
+            % and the true data. Both should be of the size N x 4.
             n = size(predicted);
             n = n(1);
             
@@ -106,6 +141,8 @@ classdef GP
 
     methods
         function classifier = train(obj, X, y)
+            % Trains the classifier. For training the data is preprocessed
+            % and then saved as properties of the class instance.
             [X, indexes, coefs, d, mean_train, std_train] = obj.preprocess_x(X, false);
             y = obj.preprocess_y(y);
             
@@ -121,6 +158,7 @@ classdef GP
         end;
 
         function [mu_, s_] = predict_(obj, x, clsfr_no)
+            % Internal function to predict values from a single classifier
             K_ = obj.linear(obj.train_x, obj.train_x);
             K_x = obj.linear(obj.train_x, x);
             K_xx = obj.linear(x, x);
@@ -131,6 +169,8 @@ classdef GP
         end
         
         function y = predict(obj, X)
+            % Predicts the labels of the given test data. 
+            % Returns a matrix of size=(size(X, 1), 4)
             n = size(X, 1);
             X = obj.preprocess_x(X, obj.indexes, obj.coefs, obj.d, obj.mean_train, obj.std_train);
             y = zeros(n, 4);
@@ -141,14 +181,23 @@ classdef GP
         end;
 
         function update(obj, x, y)
+            % Updates the classifier which is essential adding new data
+            % points to the train_x and train_y properties of the object
+            % instance
             n = size(obj.train_x, 1);
             obj.train_x(n+1, :) = x;
             obj.train_y(n+1, :) = y;
         end
         
         function s = saveobj(obj)
+            % Saves the classifier to the disk
             s.train_x = obj.train_x;
             s.train_y = obj.train_y;
+            s.indexes = obj.indexes;
+            s.coefs = obj.coefs;
+            s.d = obj.d;
+            s.mean_train = obj.mean_train;
+            s.std_train = obj.std_train;         
         end;
     end;
 end

@@ -142,44 +142,8 @@ while ( ~endTest )
 		  nEpochs=nEpochs+1; testdata{nEpochs}=data(ei); testevents{nEpochs}=devents(ei); 
 		end;
 
-    [dv, fraw, p, Xpp, X_] = buffer_apply_clsfr(data(ei).buf, clsfr(ci), opts.verb);
-
-%       % apply classification pipeline(s) to this events data      
-%       for ci=1:numel(clsfr);
-%         [f(:,ci),fraw(:,ci),p(:,ci)]=buffer_apply_clsfr(data(ei).buf,clsfr(ci),opts.verb);
-%         if ( opts.verb>1 ) fprintf('clsfr%d pred=[%s]\n',ci,sprintf('%g ',f(:,ci))); end;
-%       end
-%       % save the data used by the classifier if wanted
-%       if ( nargout>0 ) buffer_apply_clsfr
-% 		  nEpochs=nEpochs+1; testdata{nEpochs}=data(ei); testevents{nEpochs}=devents(ei); 
-% 		end;
-% 
-%         
-%       % apply classification pipeline(s) to this events data      
-%       for ci=1:numel(clsfr);
-%         [f(:,ci),fraw(:,ci),p(:,ci)]=buffer_apply_clsfr(data(ei).buf,clsfr(ci),opts.verb);
-%         if ( opts.verb>1 ) fprintf('clsfr%d pred=[%s]\n',ci,sprintf('%g ',f(:,ci))); end;
-%       end
-%       if ( numel(ci)>1 ) % combine individual classifier predictions
-%         f=sum(f,2); fraw=sum(fraw,2);
-%       end
-%       
-% 
-%       % smooth the classifier predictions if wanted
-% 		if ( isempty(dv) || isempty(opts.predFilt) ) 
-%         dv=f;
-% 		else
-%         if ( isnumeric(opts.predFilt) )
-% 			 if ( opts.predFilt>=0 ) % exp weighted moving average
-% 				dv=dv*opts.predFilt + (1-opts.predFilt)*f;
-% 			 else % store predictions in a ring buffer
-% 				fbuff(:,mod(nEpochs-1,abs(opts.predFilt))+1)=f; % store predictions in a ring buffer
-% 				dv=mean(fbuff,2);
-% 			 end
-%         elseif ( ischar(opts.predFilt) || isa(opts.predFilt,'function_handle') )
-% 			 [dv,filtstate]=feval(opts.predFilt,f,filtstate,devents(ei));
-%         end
-% 		end
+      % Do the predictions  
+      [dv, fraw, p, Xpp, X_] = buffer_apply_clsfr(data(ei).buf, clsfr(ci), opts.verb);
       
       % Send prediction event
       if ( ~isempty(dv) && isempty(opts.sendPredEventType) ) % send predictions immeadiately

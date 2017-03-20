@@ -4,7 +4,7 @@
 % This file will be loaded at the beginning of most of our scripts so it
 % contains variables for a big number of processes.
 %
-% Author: Alejandro González Rogel (s4805550)
+% Author: Alejandro Gonzï¿½lez Rogel (s4805550)
 %         Marzieh Borhanazad (s4542096)
 %         Ankur Ankan (s4753828)
 % Forked from https://github.com/jadref/buffer_bci
@@ -94,10 +94,17 @@ trlen_ms_im      = 1500; % how often to run the classifier of imaginary movement
 calibrateOpts_im ={'offset_ms',offset_ms_im};   % Options for the calibration phase.
 
 % % ErrP Calibration/data-recording options
+<<<<<<< Updated upstream
 trlen_ms_ErrP      = 1000; % how much time we collect data for the analysis of
 wait_end = 5;   % Number of iterations to wait at the end of the stage to be sure the stage is finished.
 calibrateOpts_errp ={'fs',100}; % Options for the calibration phase.
 cybathalon_path = [pwd '\..\..\..\BrainRunners\CybathlonBrainRunnersTraining1.225\Win64\'];
+=======
+trlen_ms_ErrP      = 1000; % how much time we collect data for the analysis of 
+wait_end = 5;   % Number of event to wait at the end of the stage to be sure the stage is finished.
+calibrateOpts_errp ={'fs',100};
+cybathalon_path = [pwd, '/../../CybathlonBrainRunnersTraining1.225/Linux/'];
+>>>>>>> Stashed changes
 
 
 % IM classifier training options
