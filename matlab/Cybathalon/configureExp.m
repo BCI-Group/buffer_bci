@@ -94,17 +94,10 @@ trlen_ms_im      = 1500; % how often to run the classifier of imaginary movement
 calibrateOpts_im ={'offset_ms',offset_ms_im};   % Options for the calibration phase.
 
 % % ErrP Calibration/data-recording options
-<<<<<<< Updated upstream
 trlen_ms_ErrP      = 1000; % how much time we collect data for the analysis of
 wait_end = 5;   % Number of iterations to wait at the end of the stage to be sure the stage is finished.
 calibrateOpts_errp ={'fs',100}; % Options for the calibration phase.
 cybathalon_path = [pwd '\..\..\..\BrainRunners\CybathlonBrainRunnersTraining1.225\Win64\'];
-=======
-trlen_ms_ErrP      = 1000; % how much time we collect data for the analysis of 
-wait_end = 5;   % Number of event to wait at the end of the stage to be sure the stage is finished.
-calibrateOpts_errp ={'fs',100};
-cybathalon_path = [pwd, '/../../CybathlonBrainRunnersTraining1.225/Linux/'];
->>>>>>> Stashed changes
 
 
 % IM classifier training options
